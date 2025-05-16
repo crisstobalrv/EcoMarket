@@ -36,6 +36,11 @@ public class VentaService {
             throw new RuntimeException("Medio de pago no válido");
         }
 
+        if (venta.getPedidoId() == null || venta.getMedioPago() == null) {
+            throw new RuntimeException("Faltan datos obligatorios para registrar la venta.");
+        }
+
+
         venta.setFechaVenta(LocalDate.now());
 
         // Obtener información del pedido desde microservicio de Pedidos

@@ -16,7 +16,9 @@ public class Cliente {
 
     private String nombre;
     private String apellido;
+    @Column(unique = true)
     private String rut;
+    @Column(unique = true)
     private String correo;
     private String telefono;
     private String direccion;

@@ -17,6 +17,16 @@ public class ProductoService {
     }
 
     public Producto registrar(Producto producto) {
+
+        if (producto.getNombre() == null || producto.getNombre().isBlank()) {
+            throw new RuntimeException("El nombre del producto es obligatorio.");
+        }
+
+        if (producto.getPrecio() <= 0) {
+            throw new RuntimeException("El precio debe ser mayor a cero.");
+        }
+
+
         return productoRepo.save(producto);
     }
 
@@ -35,6 +45,14 @@ public class ProductoService {
     public Producto actualizarProducto(Long id, Producto datosActualizados) {
         Producto producto = productoRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        if (producto.getNombre() == null || producto.getNombre().isBlank()) {
+            throw new RuntimeException("El nombre del producto es obligatorio.");
+        }
+
+        if (producto.getPrecio() <= 0) {
+            throw new RuntimeException("El precio debe ser mayor a cero.");
+        }
 
         producto.setNombre(datosActualizados.getNombre());
         producto.setDescripcion(datosActualizados.getDescripcion());

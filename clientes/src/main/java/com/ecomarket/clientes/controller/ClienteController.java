@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -18,9 +19,15 @@ public class ClienteController {
     }
 
     @PostMapping
-    public Cliente registrar(@RequestBody Cliente cliente) {
-        return clienteService.registrar(cliente);
+    public ResponseEntity<?> registrar(@RequestBody Cliente cliente) {
+        try {
+            Cliente nuevo = clienteService.registrar(cliente);
+            return ResponseEntity.ok(nuevo);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(409).body(Map.of("error", e.getMessage()));
+        }
     }
+
 
     @GetMapping
     public List<Cliente> listarTodos() {

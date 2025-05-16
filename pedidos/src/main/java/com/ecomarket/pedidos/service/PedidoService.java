@@ -60,6 +60,19 @@ public class PedidoService {
             detalle.setPedido(pedido);
         }
 
+        // Validar pedido vacío
+        if (pedido.getDetalles() == null || pedido.getDetalles().isEmpty()) {
+            throw new RuntimeException("El pedido no puede estar vacío.");
+        }
+
+        // Validar cantidades positivas
+        for (DetallePedido d : pedido.getDetalles()) {
+            if (d.getCantidad() <= 0) {
+                throw new RuntimeException("Cantidad inválida para el producto ID " + d.getProductoId());
+            }
+        }
+
+
         pedido.setTotal(total);
 
         return pedidoRepo.save(pedido);
