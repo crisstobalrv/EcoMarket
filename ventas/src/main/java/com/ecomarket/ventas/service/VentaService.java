@@ -44,7 +44,7 @@ public class VentaService {
         venta.setFechaVenta(LocalDate.now());
 
         // Obtener información del pedido desde microservicio de Pedidos
-        String pedidoUrl = "http://localhost:8082/api/pedidos/" + venta.getPedidoId();
+        String pedidoUrl = "http://localhost:8089/api/pedidos/" + venta.getPedidoId();
         Pedido pedido = restTemplate.getForObject(pedidoUrl, Pedido.class);
 
         if (pedido == null) {
@@ -55,7 +55,7 @@ public class VentaService {
         venta.setClienteId(pedido.getClienteId());
 
         // Cambiar estado del pedido a 'Pagado'
-        String patchUrl = "http://localhost:8082/api/pedidos/" + venta.getPedidoId() + "/estado";
+        String patchUrl = "http://localhost:8089/api/pedidos/" + venta.getPedidoId() + "/estado";
         restTemplate.put(patchUrl,
                 java.util.Collections.singletonMap("estado", "Pagado"));
 
