@@ -5,7 +5,9 @@ import com.ecomarket.inventario.service.ProveedorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/proveedores")
@@ -18,8 +20,12 @@ public class ProveedorController {
     }
 
     @PostMapping
-    public Proveedor registrar(@RequestBody Proveedor proveedor) {
-        return proveedorService.registrar(proveedor);
+    public ResponseEntity<?> registrar(@RequestBody Proveedor proveedor) {
+        Proveedor guardado = proveedorService.registrar(proveedor);
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Proveedor registrado correctamente",
+                "proveedor", guardado
+        ));
     }
 
     @GetMapping
@@ -35,13 +41,20 @@ public class ProveedorController {
     }
 
     @PutMapping("/{id}")
-    public Proveedor actualizar(@PathVariable Long id, @RequestBody Proveedor proveedor) {
-        return proveedorService.actualizar(id, proveedor);
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Proveedor proveedor) {
+        Proveedor actualizado = proveedorService.actualizar(id, proveedor);
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Proveedor actualizado correctamente",
+                "proveedor", actualizado
+        ));
     }
 
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        proveedorService.eliminarPorId(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+        proveedorService.eliminar(id);
+        return ResponseEntity.ok(Map.of("mensaje", "Proveedor eliminado correctamente"));
     }
+
+
 }

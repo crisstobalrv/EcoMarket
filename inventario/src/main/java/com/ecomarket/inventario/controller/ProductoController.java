@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -18,9 +19,15 @@ public class ProductoController {
     }
 
     @PostMapping
-    public Producto registrar(@RequestBody Producto producto) {
-        return productoService.registrar(producto);
+    public ResponseEntity<?> registrar(@RequestBody Producto producto) {
+        Producto guardado = productoService.registrar(producto);
+
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Producto registrado correctamente",
+                "producto", guardado
+        ));
     }
+
 
     @GetMapping
     public List<Producto> listarTodos() {
@@ -35,15 +42,24 @@ public class ProductoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> actualizar(@PathVariable Long id, @RequestBody Producto producto) {
-        return ResponseEntity.ok(productoService.actualizarProducto(id, producto));
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Producto producto) {
+        Producto actualizado = productoService.actualizarProducto(id, producto);
+
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Producto actualizado correctamente",
+                "producto", actualizado
+        ));
     }
 
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
         productoService.eliminarPorId(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Producto eliminado correctamente"
+        ));
     }
+
 
     @GetMapping("/categoria/{categoria}")
     public List<Producto> obtenerPorCategoria(@PathVariable String categoria) {

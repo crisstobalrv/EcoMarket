@@ -6,9 +6,9 @@ import com.ecomarket.autenticacion.service.AutenticacionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.LinkedHashMap;
+
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/autenticacion")
@@ -26,11 +26,24 @@ public class AutenticacionController {
     public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
         try {
             Usuario creado = autenticacionService.registrar(usuario);
-            return ResponseEntity.ok(creado);
+
+            Map<String, Object> respuesta = new LinkedHashMap<>();
+            respuesta.put("mensaje", "El usuario ha sido registrado exitosamente.");
+            respuesta.put("usuarioId", creado.getId());
+            respuesta.put("nombre", creado.getNombre());
+            respuesta.put("email", creado.getEmail());
+            respuesta.put("rol", creado.getRol());
+
+            return ResponseEntity.status(201).body(respuesta);
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(409).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(409).body(Map.of(
+                    "error", "Registro fallido: " + e.getMessage()
+            ));
         }
     }
+
+
 
 
     @PostMapping("/login")

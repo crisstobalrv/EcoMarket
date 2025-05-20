@@ -5,6 +5,7 @@ import com.ecomarket.logistica.service.EnvioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +20,16 @@ public class EnvioController {
     }
 
     @PostMapping
-    public Envio crearEnvio(@RequestBody Envio envio) {
-        return envioService.crearEnvio(envio);
+    public ResponseEntity<?> crearEnvio(@RequestBody Envio envio) {
+        Envio creado = envioService.crearEnvio(envio);
+        return ResponseEntity
+                .status(201)
+                .body(Map.of(
+                        "mensaje", "Envío creado exitosamente.",
+                        "envio", creado
+                ));
     }
+
 
     @GetMapping
     public List<Envio> listarTodos() {
@@ -41,7 +49,18 @@ public class EnvioController {
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<Envio> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> estado) {
-        return ResponseEntity.ok(envioService.actualizarEstado(id, estado.get("estado")));
+    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> estado) {
+        try {
+            Envio actualizado = envioService.actualizarEstado(id, estado.get("estado"));
+
+            Map<String, Object> respuesta = new LinkedHashMap<>();
+            respuesta.put("mensaje", "Estado del envío actualizado correctamente.");
+            respuesta.put("nuevoEstado", actualizado.getEstado());
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        }
     }
 }

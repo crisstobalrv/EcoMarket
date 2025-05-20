@@ -1,5 +1,6 @@
 package com.ecomarket.inventario.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,7 +23,9 @@ public class Proveedor {
     private String correo;
     private String telefono;
 
-    @OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<Producto> productos;
+    @ManyToOne
+    @JoinColumn(name = "proveedor_id")
+    @JsonBackReference
+    private Proveedor proveedor;
+
 }

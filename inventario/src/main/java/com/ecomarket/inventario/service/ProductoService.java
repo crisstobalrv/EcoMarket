@@ -1,7 +1,10 @@
 package com.ecomarket.inventario.service;
 
 import com.ecomarket.inventario.model.Producto;
+import com.ecomarket.inventario.model.Proveedor;
 import com.ecomarket.inventario.repository.ProductoRepository;
+import com.ecomarket.inventario.repository.ProveedorRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,9 +14,11 @@ import java.util.Optional;
 public class ProductoService {
 
     private final ProductoRepository productoRepo;
+    private final ProveedorRepository proveedorRepo;
 
-    public ProductoService(ProductoRepository productoRepo) {
+    public ProductoService(ProductoRepository productoRepo, ProveedorRepository proveedorRepo) {
         this.productoRepo = productoRepo;
+        this.proveedorRepo = proveedorRepo;
     }
 
     public Producto registrar(Producto producto) {
@@ -26,9 +31,15 @@ public class ProductoService {
             throw new RuntimeException("El precio debe ser mayor a cero.");
         }
 
+        //  Cargar proveedor completo desde la base de datos
+        Proveedor proveedorCompleto = proveedorRepo.findById(producto.getProveedor().getId())
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
+        producto.setProveedor(proveedorCompleto);  // Asignar proveedor completo
 
         return productoRepo.save(producto);
     }
+
 
     public List<Producto> listarTodos() {
         return productoRepo.findAll();

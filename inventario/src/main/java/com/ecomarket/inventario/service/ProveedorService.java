@@ -28,7 +28,7 @@ public class ProveedorService {
         return proveedorRepo.findById(id);
     }
 
-    public void eliminarPorId(Long id) {
+    public void eliminar(Long id) {
         proveedorRepo.deleteById(id);
     }
 

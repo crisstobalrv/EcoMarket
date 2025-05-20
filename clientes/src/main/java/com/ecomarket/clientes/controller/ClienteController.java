@@ -5,6 +5,7 @@ import com.ecomarket.clientes.service.ClienteService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,13 +21,15 @@ public class ClienteController {
 
     @PostMapping
     public ResponseEntity<?> registrar(@RequestBody Cliente cliente) {
-        try {
             Cliente nuevo = clienteService.registrar(cliente);
-            return ResponseEntity.ok(nuevo);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(409).body(Map.of("error", e.getMessage()));
-        }
+
+            Map<String, Object> respuesta = new LinkedHashMap<>();
+            respuesta.put("mensaje", "Cliente registrado exitosamente.");
+            respuesta.put("cliente", cliente);
+            return ResponseEntity.ok(respuesta);
+
     }
+
 
 
     @GetMapping
@@ -42,13 +45,27 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> actualizar(@PathVariable Long id, @RequestBody Cliente cliente) {
-        return ResponseEntity.ok(clienteService.actualizar(id, cliente));
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Cliente cliente) {
+        try {
+            Cliente actualizado = clienteService.actualizar(id, cliente);
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Cliente actualizado correctamente.",
+                    "cliente", actualizado
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        }
     }
 
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        clienteService.eliminar(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+        try {
+            clienteService.eliminar(id);
+            return ResponseEntity.ok(Map.of("mensaje", "Cliente eliminado correctamente."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        }
     }
+
 }

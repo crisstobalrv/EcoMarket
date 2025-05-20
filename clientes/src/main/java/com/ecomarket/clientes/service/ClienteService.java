@@ -20,26 +20,24 @@ public class ClienteService {
     }
 
     public Cliente registrar(Cliente cliente) {
-
+        // 1. Validar que exista en Autenticación
         if (!correoExisteEnAutenticacion(cliente.getCorreo())) {
             throw new RuntimeException("Primero debe registrarse como usuario.");
         }
 
+        // 2. Validar que NO esté ya registrado en Clientes
         if (clienteRepo.findByCorreo(cliente.getCorreo()).isPresent()) {
-            throw new RuntimeException("El correo ya está registrado como cliente.");
+            throw new RuntimeException("Este correo ya tiene un perfil como cliente.");
         }
 
+        // 3. Validar RUT duplicado
         if (clienteRepo.findByRut(cliente.getRut()).isPresent()) {
             throw new RuntimeException("El RUT ya está registrado.");
         }
 
-        if (correoExisteEnAutenticacion(cliente.getCorreo())) {
-            throw new RuntimeException("Este correo ya está registrado como usuario.");
-        }
-
-
         return clienteRepo.save(cliente);
     }
+
 
 
     public List<Cliente> obtenerTodos() {

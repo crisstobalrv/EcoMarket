@@ -5,6 +5,7 @@ import com.ecomarket.pedidos.service.PedidoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +20,14 @@ public class PedidoController {
     }
 
     @PostMapping
-    public Pedido crearPedido(@RequestBody Pedido pedido) {
-        return pedidoService.registrar(pedido);
+    public ResponseEntity<Map<String, Object>> crearPedido(@RequestBody Pedido pedido) {
+        Pedido nuevo = pedidoService.registrar(pedido);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("mensaje", "El pedido fue creado exitosamente.");
+        response.put("pedido", nuevo);
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping
     public List<Pedido> listarTodos() {
@@ -42,10 +48,14 @@ public class PedidoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarPedido(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> eliminarPorId(@PathVariable Long id) {
         pedidoService.eliminarPorId(id);
-        return ResponseEntity.noContent().build();
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("mensaje", "El pedido fue eliminado correctamente.");
+        response.put("pedidoId", id);
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/cliente/{clienteId}")
     public List<Pedido> obtenerPorCliente(@PathVariable Long clienteId) {

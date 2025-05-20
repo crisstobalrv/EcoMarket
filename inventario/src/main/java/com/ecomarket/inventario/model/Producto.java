@@ -26,4 +26,6 @@ public class Producto {
     @JoinColumn(name = "proveedor_id")
     @JsonIgnoreProperties("productos")
     private Proveedor proveedor;
+
+
 }
