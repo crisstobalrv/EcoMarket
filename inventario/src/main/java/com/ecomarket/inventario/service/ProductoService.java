@@ -31,14 +31,23 @@ public class ProductoService {
             throw new RuntimeException("El precio debe ser mayor a cero.");
         }
 
-        //  Cargar proveedor completo desde la base de datos
+        // Cargar proveedor completo desde la base de datos
         Proveedor proveedorCompleto = proveedorRepo.findById(producto.getProveedor().getId())
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
+        // Verificar si ya existe un producto con ese nombre y proveedor
+        Optional<Producto> existente = productoRepo.findByNombreAndProveedorId(
+                producto.getNombre(), proveedorCompleto.getId());
+
+        if (existente.isPresent()) {
+            throw new RuntimeException("Ya existe un producto con ese nombre para este proveedor.");
+        }
 
         producto.setProveedor(proveedorCompleto);  // Asignar proveedor completo
 
         return productoRepo.save(producto);
     }
+
 
 
     public List<Producto> listarTodos() {

@@ -45,7 +45,7 @@ public class ResenaService {
 
 
         // Validar que el cliente haya comprado el producto
-        String urlPedidos = "http://localhost:8082/api/pedidos/cliente/" + resena.getClienteId();
+        String urlPedidos = "http://localhost:8089/api/pedidos/cliente/" + resena.getClienteId();
         Pedido[] pedidos = restTemplate.getForObject(urlPedidos, Pedido[].class);
         boolean loCompro = Arrays.stream(pedidos)
                 .flatMap(p -> p.getDetalles().stream())

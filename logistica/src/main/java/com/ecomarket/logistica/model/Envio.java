@@ -16,7 +16,7 @@ public class Envio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long pedidoId;
+    private Long ventaId;
     private String direccionEntrega;
     private String estado; // "En preparación", "En camino", "Entregado"
     private LocalDate fechaEnvio;

@@ -17,8 +17,16 @@ public class ProveedorService {
     }
 
     public Proveedor registrar(Proveedor proveedor) {
+        // Verificar si ya existe un proveedor con ese RUT
+        Optional<Proveedor> existente = proveedorRepo.findByRut(proveedor.getRut());
+
+        if (existente.isPresent()) {
+            throw new RuntimeException("Ya existe un proveedor registrado con ese RUT.");
+        }
+
         return proveedorRepo.save(proveedor);
     }
+
 
     public List<Proveedor> listarTodos() {
         return proveedorRepo.findAll();

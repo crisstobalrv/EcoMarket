@@ -43,10 +43,11 @@ public class EnvioController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/pedido/{pedidoId}")
-    public List<Envio> obtenerPorPedido(@PathVariable Long pedidoId) {
-        return envioService.obtenerPorPedido(pedidoId);
+    @GetMapping("/venta/{ventaId}")
+    public List<Envio> obtenerPorVenta(@PathVariable Long ventaId) {
+        return envioService.obtenerPorVenta(ventaId);
     }
+
 
     @PatchMapping("/{id}/estado")
     public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> estado) {

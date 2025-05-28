@@ -21,4 +21,5 @@ public class Venta {
     private LocalDate fechaVenta;
     private Double totalVenta;
     private String medioPago;
+    private String estado;
 }

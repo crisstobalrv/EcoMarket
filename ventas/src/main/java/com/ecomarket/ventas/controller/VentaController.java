@@ -62,4 +62,18 @@ public class VentaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/{id}/anular")
+    public ResponseEntity<?> anularVenta(@PathVariable Long id) {
+        boolean anulada = ventaService.anularVenta(id);
+
+        if (anulada) {
+            Map<String, Object> respuesta = new LinkedHashMap<>();
+            respuesta.put("mensaje", "Venta anulada correctamente");
+            return ResponseEntity.ok(respuesta);
+        } else {
+            return ResponseEntity.status(404).body(Map.of("mensaje", "Venta no encontrada o ya anulada"));
+        }
+    }
+
+
 }

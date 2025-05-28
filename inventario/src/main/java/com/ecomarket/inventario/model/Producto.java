@@ -10,6 +10,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"nombre", "proveedor_id"}))
+
 public class Producto {
 
     @Id

@@ -13,8 +13,6 @@ import java.util.Optional;
 @Service
 public class EnvioService {
 
-
-
     private final EnvioRepository envioRepo;
     private final RestTemplate restTemplate;
 
@@ -23,24 +21,21 @@ public class EnvioService {
         this.restTemplate = restTemplate;
     }
 
-
     public Envio crearEnvio(Envio envio) {
-        // Verificar si ya hay un envío para ese pedido
-        if (!envioRepo.findByPedidoId(envio.getPedidoId()).isEmpty()) {
-            throw new RuntimeException("Ya existe un envío registrado para este pedido.");
+        // Validar que no exista ya un envío para esta venta
+        if (!envioRepo.findByVentaId(envio.getVentaId()).isEmpty()) {
+            throw new RuntimeException("Ya existe un envío registrado para esta venta.");
         }
 
-        // Verificar que el pedido exista en el microservicio de Pedidos
-        if (!pedidoExiste(envio.getPedidoId())) {
-            throw new RuntimeException("No se puede crear el envío: el pedido no existe.");
+        // Validar que la venta exista (por lo tanto, que el pedido esté pagado)
+        if (!ventaExiste(envio.getVentaId())) {
+            throw new RuntimeException("No se puede crear el envío: la venta no existe.");
         }
 
         envio.setEstado("En preparación");
         envio.setFechaEnvio(LocalDate.now());
         return envioRepo.save(envio);
     }
-
-
 
     public List<Envio> obtenerTodos() {
         return envioRepo.findAll();
@@ -50,8 +45,8 @@ public class EnvioService {
         return envioRepo.findById(id);
     }
 
-    public List<Envio> obtenerPorPedido(Long pedidoId) {
-        return envioRepo.findByPedidoId(pedidoId);
+    public List<Envio> obtenerPorVenta(Long ventaId) {
+        return envioRepo.findByVentaId(ventaId);
     }
 
     public Envio actualizarEstado(Long id, String nuevoEstado) {
@@ -62,14 +57,15 @@ public class EnvioService {
         return envioRepo.save(envio);
     }
 
-    private boolean pedidoExiste(Long pedidoId) {
+    private boolean ventaExiste(Long ventaId) {
         try {
-            String url = "http://localhost:8082/api/pedidos/" + pedidoId;
+            String url = "http://localhost:8086/api/ventas/" + ventaId;
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             return response.getStatusCode().is2xxSuccessful();
         } catch (Exception e) {
+            e.printStackTrace(); // <- para que veas el error exacto en consola
             return false;
         }
     }
-
 }
+

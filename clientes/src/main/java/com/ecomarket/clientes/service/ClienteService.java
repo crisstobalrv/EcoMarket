@@ -52,19 +52,25 @@ public class ClienteService {
         Cliente cliente = clienteRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-        // ⚠Validar que el correo no cambie
+        // Validar que el correo no cambie
         if (!cliente.getCorreo().equals(clienteNuevo.getCorreo())) {
             throw new RuntimeException("No está permitido modificar el correo electrónico.");
         }
 
+        // Validar que el RUT no cambie
+        if (!cliente.getRut().equals(clienteNuevo.getRut())) {
+            throw new RuntimeException("No está permitido modificar el RUT.");
+        }
+
+        // Actualizar solo los campos permitidos
         cliente.setNombre(clienteNuevo.getNombre());
         cliente.setApellido(clienteNuevo.getApellido());
-        cliente.setRut(clienteNuevo.getRut());
         cliente.setTelefono(clienteNuevo.getTelefono());
         cliente.setDireccion(clienteNuevo.getDireccion());
 
         return clienteRepo.save(cliente);
     }
+
 
     public void eliminar(Long id) {
         clienteRepo.deleteById(id);

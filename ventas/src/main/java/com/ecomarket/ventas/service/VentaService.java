@@ -45,7 +45,7 @@ public class VentaService {
         venta.setFechaVenta(LocalDate.now());
 
         // Obtener información del pedido desde microservicio de Pedidos
-        String pedidoUrl = "http://localhost:8082/api/pedidos/" + venta.getPedidoId();
+        String pedidoUrl = "http://localhost:8089/api/pedidos/" + venta.getPedidoId();
         Pedido pedido = restTemplate.getForObject(pedidoUrl, Pedido.class);
 
         if (pedido == null) {
@@ -56,7 +56,7 @@ public class VentaService {
         venta.setClienteId(pedido.getClienteId());
 
         // Cambiar estado del pedido a 'Pagado'
-        String patchUrl = "http://localhost:8082/api/pedidos/" + venta.getPedidoId() + "/estado";
+        String patchUrl = "http://localhost:8089/api/pedidos/" + venta.getPedidoId() + "/estado";
         restTemplate.put(patchUrl,
                 java.util.Collections.singletonMap("estado", "Pagado"));
 
@@ -66,6 +66,8 @@ public class VentaService {
                     + "/descontar/" + detalle.getCantidad();
             restTemplate.put(urlDescontar, null);
         }
+
+        venta.setEstado("Pagada");
 
         return ventaRepo.save(venta);
     }
@@ -99,6 +101,21 @@ public class VentaService {
     public Optional<Venta> buscarPorId(Long id) {
         return ventaRepo.findById(id);
     }
+
+    public boolean anularVenta(Long id) {
+        Optional<Venta> ventaOpt = ventaRepo.findById(id);
+
+        if (ventaOpt.isPresent()) {
+            Venta venta = ventaOpt.get();
+            if (!"Anulada".equalsIgnoreCase(venta.getEstado())) {
+                venta.setEstado("Anulada");
+                ventaRepo.save(venta);
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 
 }
