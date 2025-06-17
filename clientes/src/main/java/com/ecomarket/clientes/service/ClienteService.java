@@ -19,6 +19,11 @@ public class ClienteService {
         this.restTemplate = restTemplate;
     }
 
+    public Cliente guardarCliente(Cliente cliente) {
+        return clienteRepo.save(cliente);
+    }
+
+
     public Cliente registrar(Cliente cliente) {
         // 1. Validar que exista en Autenticación
         if (!correoExisteEnAutenticacion(cliente.getCorreo())) {
@@ -44,8 +49,9 @@ public class ClienteService {
         return clienteRepo.findAll();
     }
 
-    public Optional<Cliente> obtenerPorId(Long id) {
-        return clienteRepo.findById(id);
+    public Cliente obtenerPorId(Long id) {
+        return clienteRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
     }
 
     public Cliente actualizar(Long id, Cliente clienteNuevo) {
@@ -85,6 +91,13 @@ public class ClienteService {
             return false; // En caso de error, mejor dejar registrar
         }
     }
-    
+    public class ClienteNoEncontradoException extends RuntimeException {
+        public ClienteNoEncontradoException(Long id) {
+            super("Cliente con ID " + id + " no encontrado.");
+        }
+    }
+
+
+
 
 }
