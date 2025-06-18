@@ -19,10 +19,6 @@ public class ClienteService {
         this.restTemplate = restTemplate;
     }
 
-    public Cliente guardarCliente(Cliente cliente) {
-        return clienteRepo.save(cliente);
-    }
-
 
     public Cliente registrar(Cliente cliente) {
         // 1. Validar que exista en Autenticación

@@ -49,12 +49,28 @@ class ClienteServiceTest {
 
         when(clienteRepository.save(nuevo)).thenReturn(guardado);
 
-        Cliente resultado = clienteService.guardarCliente(nuevo);
+        Cliente resultado = clienteService.registrar(nuevo);
 
         assertEquals("Luis", resultado.getNombre());
         assertEquals("luis@mail.com", resultado.getCorreo());
         assertEquals("12345678-9", resultado.getRut());
     }
+
+    @Test
+    void actualizarCliente_deberiaModificarYRetornarCliente() {
+        Cliente original = Cliente.builder().id(1L).nombre("Luis").rut("12345678-9").correo("luis@mail.com").build();
+        Cliente modificado = Cliente.builder().nombre("Luis Miguel").rut("12345678-9").correo("luis.miguel@mail.com").build();
+        Cliente guardado = Cliente.builder().id(1L).nombre("Luis Miguel").rut("12345678-9").correo("luis.miguel@mail.com").build();
+
+        when(clienteRepository.findById(1L)).thenReturn(Optional.of(original));
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(guardado);
+
+        Cliente resultado = clienteService.actualizar(1L, modificado);
+
+        assertEquals("Luis Miguel", resultado.getNombre());
+        assertEquals("luis.miguel@mail.com", resultado.getCorreo());
+    }
+
 
     @Test
     void obtenerCliente_existente_deberiaRetornarCliente() {

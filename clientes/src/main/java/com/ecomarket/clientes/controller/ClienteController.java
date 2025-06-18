@@ -25,7 +25,7 @@ public class ClienteController {
     @Operation(summary = "Registrar cliente")
     @ApiResponse(responseCode = "201", description = "Cliente creado")
     public ResponseEntity<Cliente> registrar(@RequestBody Cliente cliente) {
-        Cliente nuevo = clienteService.guardarCliente(cliente);
+        Cliente nuevo = clienteService.registrar(cliente);
         return ResponseEntity.status(201).body(nuevo);
     }
 
