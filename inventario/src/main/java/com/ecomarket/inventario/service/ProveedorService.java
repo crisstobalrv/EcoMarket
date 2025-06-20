@@ -16,7 +16,7 @@ public class ProveedorService {
         this.proveedorRepo = proveedorRepo;
     }
 
-    public Proveedor registrar(Proveedor proveedor) {
+    public Proveedor guardarProveedor(Proveedor proveedor) {
         // Verificar si ya existe un proveedor con ese RUT
         Optional<Proveedor> existente = proveedorRepo.findByRut(proveedor.getRut());
 
@@ -28,19 +28,21 @@ public class ProveedorService {
     }
 
 
-    public List<Proveedor> listarTodos() {
+    public List<Proveedor> obtenerTodos() {
         return proveedorRepo.findAll();
     }
 
-    public Optional<Proveedor> buscarPorId(Long id) {
-        return proveedorRepo.findById(id);
+    public Proveedor obtenerProveedorPorId(Long id) {
+        return proveedorRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + id));
     }
 
-    public void eliminar(Long id) {
+
+    public void eliminarProveedor(Long id) {
         proveedorRepo.deleteById(id);
     }
 
-    public Proveedor actualizar(Long id, Proveedor datos) {
+    public Proveedor actualizarProveedor(Long id, Proveedor datos) {
         Proveedor proveedor = proveedorRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
 

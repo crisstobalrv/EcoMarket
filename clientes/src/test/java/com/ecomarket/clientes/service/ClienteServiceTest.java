@@ -193,7 +193,7 @@ class ClienteServiceTest {
     }
 
     @Test
-    void eliminarCliente_deberiaLlamarRepositoryDelete() {
+    void eliminarCliente() {
         Long id = 5L;
         doNothing().when(clienteRepository).deleteById(id);
 

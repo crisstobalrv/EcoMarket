@@ -4,7 +4,6 @@ import com.ecomarket.inventario.model.Producto;
 import com.ecomarket.inventario.model.Proveedor;
 import com.ecomarket.inventario.repository.ProductoRepository;
 import com.ecomarket.inventario.repository.ProveedorRepository;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +20,7 @@ public class ProductoService {
         this.proveedorRepo = proveedorRepo;
     }
 
-    public Producto registrar(Producto producto) {
+    public Producto guardarProducto(Producto producto) {
 
         if (producto.getNombre() == null || producto.getNombre().isBlank()) {
             throw new RuntimeException("El nombre del producto es obligatorio.");
@@ -31,11 +30,11 @@ public class ProductoService {
             throw new RuntimeException("El precio debe ser mayor a cero.");
         }
 
-        // Cargar proveedor completo desde la base de datos
+
         Proveedor proveedorCompleto = proveedorRepo.findById(producto.getProveedor().getId())
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
 
-        // Verificar si ya existe un producto con ese nombre y proveedor
+
         Optional<Producto> existente = productoRepo.findByNombreAndProveedorId(
                 producto.getNombre(), proveedorCompleto.getId());
 
@@ -50,15 +49,16 @@ public class ProductoService {
 
 
 
-    public List<Producto> listarTodos() {
+    public List<Producto> obtenerTodos() {
         return productoRepo.findAll();
     }
 
-    public Optional<Producto> buscarPorId(Long id) {
-        return productoRepo.findById(id);
+    public Producto obtenerProductoPorId(Long id) {
+        return productoRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
     }
 
-    public void eliminarPorId(Long id) {
+    public void eliminarProducto(Long id) {
         productoRepo.deleteById(id);
     }
 
