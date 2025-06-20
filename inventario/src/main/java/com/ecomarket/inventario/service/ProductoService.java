@@ -1,10 +1,11 @@
 package com.ecomarket.inventario.service;
 
+import com.ecomarket.inventario.dto.ProductoCreateRequest;
+import com.ecomarket.inventario.dto.ProductoUpdateRequest;
 import com.ecomarket.inventario.model.Producto;
 import com.ecomarket.inventario.model.Proveedor;
 import com.ecomarket.inventario.repository.ProductoRepository;
 import com.ecomarket.inventario.repository.ProveedorRepository;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,67 +22,89 @@ public class ProductoService {
         this.proveedorRepo = proveedorRepo;
     }
 
-    public Producto registrar(Producto producto) {
 
-        if (producto.getNombre() == null || producto.getNombre().isBlank()) {
+
+    public Producto guardarProducto(ProductoCreateRequest request) {
+
+        // Validaciones
+        if (request.getNombre() == null || request.getNombre().isBlank()) {
             throw new RuntimeException("El nombre del producto es obligatorio.");
         }
 
-        if (producto.getPrecio() <= 0) {
+        if (request.getPrecio() == null || request.getPrecio() <= 0) {
             throw new RuntimeException("El precio debe ser mayor a cero.");
         }
 
-        // Cargar proveedor completo desde la base de datos
-        Proveedor proveedorCompleto = proveedorRepo.findById(producto.getProveedor().getId())
+        // Buscar proveedor por ID
+        Proveedor proveedorCompleto = proveedorRepo.findById(request.getProveedorId())
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
 
-        // Verificar si ya existe un producto con ese nombre y proveedor
+        // Verificar si ya existe un producto con el mismo nombre y proveedor
         Optional<Producto> existente = productoRepo.findByNombreAndProveedorId(
-                producto.getNombre(), proveedorCompleto.getId());
+                request.getNombre(), proveedorCompleto.getId());
 
         if (existente.isPresent()) {
             throw new RuntimeException("Ya existe un producto con ese nombre para este proveedor.");
         }
 
-        producto.setProveedor(proveedorCompleto);  // Asignar proveedor completo
+        // Crear y guardar el producto
+        Producto producto = Producto.builder()
+                .nombre(request.getNombre())
+                .descripcion(request.getDescripcion())
+                .categoria(request.getCategoria())
+                .stock(request.getStock())
+                .precio(request.getPrecio())
+                .proveedor(proveedorCompleto)
+                .build();
 
         return productoRepo.save(producto);
     }
 
 
 
-    public List<Producto> listarTodos() {
+
+    public List<Producto> obtenerTodos() {
         return productoRepo.findAll();
     }
 
-    public Optional<Producto> buscarPorId(Long id) {
-        return productoRepo.findById(id);
+    public Producto obtenerProductoPorId(Long id) {
+        return productoRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
     }
 
-    public void eliminarPorId(Long id) {
+    public void eliminarProducto(Long id) {
         productoRepo.deleteById(id);
     }
 
-    public Producto actualizarProducto(Long id, Producto datosActualizados) {
+    public Producto actualizarProducto(Long id, ProductoUpdateRequest request) {
+        // Buscar el producto original
         Producto producto = productoRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-        if (producto.getNombre() == null || producto.getNombre().isBlank()) {
+        // Validaciones sobre los datos entrantes (request)
+        if (request.getNombre() == null || request.getNombre().isBlank()) {
             throw new RuntimeException("El nombre del producto es obligatorio.");
         }
 
-        if (producto.getPrecio() <= 0) {
+        if (request.getPrecio() == null || request.getPrecio() <= 0) {
             throw new RuntimeException("El precio debe ser mayor a cero.");
         }
 
-        producto.setNombre(datosActualizados.getNombre());
-        producto.setDescripcion(datosActualizados.getDescripcion());
-        producto.setCategoria(datosActualizados.getCategoria());
-        producto.setPrecio(datosActualizados.getPrecio());
-        producto.setStock(datosActualizados.getStock());
+        // Buscar el proveedor indicado en el request
+        Proveedor proveedor = proveedorRepo.findById(request.getProveedorId())
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
+        // Actualizar campos
+        producto.setNombre(request.getNombre());
+        producto.setDescripcion(request.getDescripcion());
+        producto.setCategoria(request.getCategoria());
+        producto.setStock(request.getStock());
+        producto.setPrecio(request.getPrecio());
+        producto.setProveedor(proveedor);
 
         return productoRepo.save(producto);
     }
+
 
     public List<Producto> buscarPorCategoria(String categoria) {
         return productoRepo.findByCategoria(categoria);

@@ -1,6 +1,8 @@
 package com.ecomarket.inventario.service;
 
+import com.ecomarket.inventario.dto.ProveedorUpdateRequest;
 import com.ecomarket.inventario.model.Proveedor;
+import com.ecomarket.inventario.repository.ProductoRepository;
 import com.ecomarket.inventario.repository.ProveedorRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +13,14 @@ import java.util.Optional;
 public class ProveedorService {
 
     private final ProveedorRepository proveedorRepo;
+    private final ProductoRepository productoRepository;
 
-    public ProveedorService(ProveedorRepository proveedorRepo) {
+    public ProveedorService(ProveedorRepository proveedorRepo, ProductoRepository productoRepository) {
         this.proveedorRepo = proveedorRepo;
+        this.productoRepository = productoRepository;
     }
 
-    public Proveedor registrar(Proveedor proveedor) {
+    public Proveedor guardarProveedor(Proveedor proveedor) {
         // Verificar si ya existe un proveedor con ese RUT
         Optional<Proveedor> existente = proveedorRepo.findByRut(proveedor.getRut());
 
@@ -28,19 +32,29 @@ public class ProveedorService {
     }
 
 
-    public List<Proveedor> listarTodos() {
+    public List<Proveedor> obtenerTodos() {
         return proveedorRepo.findAll();
     }
 
-    public Optional<Proveedor> buscarPorId(Long id) {
-        return proveedorRepo.findById(id);
+    public Proveedor obtenerProveedorPorId(Long id) {
+        return proveedorRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + id));
     }
 
-    public void eliminar(Long id) {
+
+    public void eliminarProveedor(Long id) {
+        Proveedor proveedor = proveedorRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
+        if (productoRepository.existsByProveedor_Id(id)) {
+            throw new RuntimeException("No se puede eliminar: el proveedor tiene productos asociados.");
+        }
+
         proveedorRepo.deleteById(id);
     }
 
-    public Proveedor actualizar(Long id, Proveedor datos) {
+
+    public Proveedor actualizarProveedor(Long id, ProveedorUpdateRequest datos) {
         Proveedor proveedor = proveedorRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
 
@@ -51,4 +65,5 @@ public class ProveedorService {
 
         return proveedorRepo.save(proveedor);
     }
+
 }

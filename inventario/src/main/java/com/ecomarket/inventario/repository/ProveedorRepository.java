@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
     Optional<Proveedor> findByRut(String rut);
+    boolean existsByProveedor_Id(Long proveedorId);
 
 }
 
