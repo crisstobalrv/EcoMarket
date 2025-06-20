@@ -1,16 +1,20 @@
 package com.ecomarket.autenticacion.controller;
 
+import com.ecomarket.autenticacion.dto.LoginRequest;
+import com.ecomarket.autenticacion.dto.RegistroRequest;
 import com.ecomarket.autenticacion.model.Usuario;
 import com.ecomarket.autenticacion.repository.AutenticacionRepository;
 import com.ecomarket.autenticacion.service.AutenticacionService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import java.util.LinkedHashMap;
+import jakarta.validation.Valid;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/autenticacion")
@@ -25,62 +29,53 @@ public class AutenticacionController {
         this.autenticacionRepository = autenticacionRepository;
     }
 
-    @Operation(
-            summary = "Registrar nuevo usuario",
-            description = "Crea un nuevo usuario en el sistema si el email no está registrado"
-    )
-    @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente")
-    @ApiResponse(responseCode = "409", description = "Error de validación o email ya registrado")
     @PostMapping("/registro")
-    public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
-        try {
-            Usuario creado = autenticacionService.registrar(usuario);
+    @Operation(summary = "Registrar usuario")
+    @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente")
+    public ResponseEntity<?> registrar(@Valid @RequestBody RegistroRequest datos) {
+        Usuario nuevo = new Usuario();
+        nuevo.setNombre(datos.getNombre());
+        nuevo.setEmail(datos.getEmail());
+        nuevo.setPassword(datos.getPassword());
+        nuevo.setRol("cliente"); // 🔐 asignado automáticamente
 
-            Map<String, Object> respuesta = new LinkedHashMap<>();
-            respuesta.put("mensaje", "El usuario ha sido registrado exitosamente.");
-            respuesta.put("usuarioId", creado.getId());
-            respuesta.put("nombre", creado.getNombre());
-            respuesta.put("email", creado.getEmail());
-            respuesta.put("rol", creado.getRol());
+        Usuario creado = autenticacionService.registrar(nuevo);
 
-            return ResponseEntity.status(201).body(respuesta);
+        EntityModel<Usuario> model = EntityModel.of(creado);
+        model.add(linkTo(methodOn(AutenticacionController.class).registrar(datos)).withSelfRel());
+        model.add(linkTo(methodOn(AutenticacionController.class).login(
+                new LoginRequest(creado.getEmail(), creado.getPassword())
+        )).withRel("login"));
+        model.add(linkTo(methodOn(AutenticacionController.class).existeEmail(creado.getEmail())).withRel("verificarEmail"));
 
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(409).body(Map.of(
-                    "error", "Registro fallido: " + e.getMessage()
-            ));
-        }
+        return ResponseEntity.status(201).body(model);
     }
 
-    @Operation(
-            summary = "Login de usuario",
-            description = "Valida las credenciales del usuario y devuelve información básica si son correctas"
-    )
-    @ApiResponse(responseCode = "200", description = "Login exitoso")
-    @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
-        String password = credentials.get("password");
+    @Operation(summary = "Iniciar sesión")
+    @ApiResponse(responseCode = "200", description = "Login exitoso")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        String email = request.getEmail();
+        String password = request.getPassword();
 
         if (autenticacionService.login(email, password)) {
             Usuario usuario = autenticacionService.obtenerUsuario(email);
-            return ResponseEntity.ok(Map.of(
-                    "mensaje", "Login exitoso",
-                    "usuarioId", usuario.getId(),
-                    "rol", usuario.getRol()
-            ));
+
+            EntityModel<Usuario> model = EntityModel.of(usuario,
+                    linkTo(methodOn(AutenticacionController.class).login(request)).withSelfRel(),
+                    linkTo(methodOn(AutenticacionController.class).existeEmail(email)).withRel("verificarEmail"),
+                    linkTo(methodOn(AutenticacionController.class).registrar(new RegistroRequest())).withRel("registro")
+            );
+
+            return ResponseEntity.ok(model);
         } else {
             return ResponseEntity.status(401).body(Map.of("error", "Credenciales inválidas"));
         }
     }
 
-    @Operation(
-            summary = "Verificar existencia de email",
-            description = "Devuelve true si el email ya está registrado, false si no"
-    )
-    @ApiResponse(responseCode = "200", description = "Resultado de verificación")
+
     @GetMapping("/existe")
+    @Operation(summary = "Verificar si un email ya está registrado")
     public ResponseEntity<Boolean> existeEmail(@RequestParam String email) {
         boolean existe = autenticacionRepository.findByEmail(email).isPresent();
         return ResponseEntity.ok(existe);

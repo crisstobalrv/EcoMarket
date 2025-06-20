@@ -4,6 +4,11 @@ import com.ecomarket.clientes.model.Cliente;
 import com.ecomarket.clientes.repository.ClienteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -15,8 +20,13 @@ import static org.mockito.Mockito.*;
 
 class ClienteServiceTest {
 
+    @Mock
     private ClienteRepository clienteRepository;
+
+    @Mock
     private RestTemplate restTemplate;
+
+    @InjectMocks
     private ClienteService clienteService;
 
     @BeforeEach
@@ -27,49 +37,116 @@ class ClienteServiceTest {
     }
 
     @Test
-    void guardarCliente_deberiaGuardarYRetornarCliente() {
-        Cliente nuevo = Cliente.builder()
+    void guardarCliente_correctamente() {
+        Cliente cliente = Cliente.builder()
                 .nombre("Luis")
                 .apellido("Gómez")
                 .rut("12345678-9")
                 .correo("luis@mail.com")
-                .telefono("987654321")
-                .direccion("Av. Siempre Viva 123")
+                .telefono("123456789")
+                .direccion("Dirección X")
                 .build();
 
-        Cliente guardado = Cliente.builder()
-                .id(1L)
-                .nombre("Luis")
-                .apellido("Gómez")
-                .rut("12345678-9")
-                .correo("luis@mail.com")
-                .telefono("987654321")
-                .direccion("Av. Siempre Viva 123")
-                .build();
+        // Mock: simulamos que el correo existe en el MS de Autenticación
+        when(restTemplate.getForObject(anyString(), eq(Boolean.class))).thenReturn(true);
 
-        when(clienteRepository.save(nuevo)).thenReturn(guardado);
+        // Mock: simulamos que no está registrado aún en Clientes
+        when(clienteRepository.findByCorreo(cliente.getCorreo())).thenReturn(Optional.empty());
+        when(clienteRepository.findByRut(cliente.getRut())).thenReturn(Optional.empty());
+        when(clienteRepository.save(cliente)).thenReturn(cliente);
 
-        Cliente resultado = clienteService.registrar(nuevo);
+        Cliente resultado = clienteService.registrar(cliente);
 
         assertEquals("Luis", resultado.getNombre());
         assertEquals("luis@mail.com", resultado.getCorreo());
-        assertEquals("12345678-9", resultado.getRut());
     }
+
+
+
 
     @Test
-    void actualizarCliente_deberiaModificarYRetornarCliente() {
-        Cliente original = Cliente.builder().id(1L).nombre("Luis").rut("12345678-9").correo("luis@mail.com").build();
-        Cliente modificado = Cliente.builder().nombre("Luis Miguel").rut("12345678-9").correo("luis.miguel@mail.com").build();
-        Cliente guardado = Cliente.builder().id(1L).nombre("Luis Miguel").rut("12345678-9").correo("luis.miguel@mail.com").build();
+    void guardarCliente_sinUsuarioRegistrado_lanzaExcepcion() {
+        Cliente cliente = Cliente.builder()
+                .nombre("Luis")
+                .apellido("Gómez")
+                .rut("12345678-9")
+                .correo("luis@mail.com")
+                .telefono("123456789")
+                .direccion("Dirección X")
+                .build();
 
-        when(clienteRepository.findById(1L)).thenReturn(Optional.of(original));
-        when(clienteRepository.save(any(Cliente.class))).thenReturn(guardado);
+        when(restTemplate.getForEntity(
+                "http://localhost:8081/api/autenticacion/existe?email=luis@mail.com",
+                Boolean.class)
+        ).thenReturn(new ResponseEntity<>(false, HttpStatus.OK)); // ⚠ Usuario NO existe
 
-        Cliente resultado = clienteService.actualizar(1L, modificado);
-
-        assertEquals("Luis Miguel", resultado.getNombre());
-        assertEquals("luis.miguel@mail.com", resultado.getCorreo());
+        assertThrows(RuntimeException.class, () ->
+                        clienteService.registrar(cliente),
+                "Primero debe registrarse como usuario."
+        );
     }
+
+
+    @Test
+    void actualizarCliente_correctamente() {
+        Cliente existente = Cliente.builder()
+                .id(1L)
+                .nombre("Luis")
+                .apellido("Gómez")
+                .correo("luis@mail.com")
+                .rut("12345678-9")
+                .telefono("123")
+                .direccion("Avenida 1")
+                .build();
+
+        Cliente modificado = Cliente.builder()
+                .nombre("Luis Enrique") // cambio permitido
+                .apellido("Gómez")
+                .correo("luis@mail.com") // igual al original
+                .rut("12345678-9")
+                .telefono("456")
+                .direccion("Nueva Dirección")
+                .build();
+
+        when(clienteRepository.findById(1L)).thenReturn(Optional.of(existente));
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(modificado);
+
+        Cliente actualizado = clienteService.actualizar(1L, modificado);
+
+        assertEquals("Luis Enrique", actualizado.getNombre());
+        assertEquals("456", actualizado.getTelefono());
+    }
+
+
+
+    @Test
+    void actualizarCliente_modificandoCorreo_lanzaExcepcion() {
+        Cliente existente = Cliente.builder()
+                .id(1L)
+                .nombre("Luis")
+                .apellido("Gómez")
+                .correo("luis@mail.com")
+                .rut("12345678-9")
+                .telefono("123")
+                .direccion("Avenida 1")
+                .build();
+
+        Cliente modificado = Cliente.builder()
+                .nombre("Luis")
+                .apellido("Gómez")
+                .correo("otro@mail.com") // ⚠ cambio ilegal
+                .rut("12345678-9")
+                .telefono("123")
+                .direccion("Avenida 1")
+                .build();
+
+        when(clienteRepository.findById(1L)).thenReturn(Optional.of(existente));
+
+        assertThrows(RuntimeException.class, () ->
+                clienteService.actualizar(1L, modificado)
+        );
+    }
+
 
 
     @Test
