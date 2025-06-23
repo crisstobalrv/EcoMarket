@@ -34,7 +34,7 @@ public class ClienteController {
 
         EntityModel<Cliente> model = EntityModel.of(nuevo);
         model.add(linkTo(methodOn(ClienteController.class).obtenerPorId(nuevo.getId())).withSelfRel());
-        model.add(linkTo(methodOn(ClienteController.class).listar()).withRel("todos"));
+        model.add(linkTo(methodOn(ClienteController.class).ObtenerTodos()).withRel("todos"));
         model.add(linkTo(methodOn(ClienteController.class).actualizar(nuevo.getId(), nuevo)).withRel("actualizar"));
         model.add(linkTo(methodOn(ClienteController.class).eliminar(nuevo.getId())).withRel("eliminar"));
 
@@ -50,7 +50,7 @@ public class ClienteController {
 
         EntityModel<Cliente> model = EntityModel.of(cliente);
         model.add(linkTo(methodOn(ClienteController.class).obtenerPorId(id)).withSelfRel());
-        model.add(linkTo(methodOn(ClienteController.class).listar()).withRel("todos"));
+        model.add(linkTo(methodOn(ClienteController.class).ObtenerTodos()).withRel("todos"));
         model.add(linkTo(methodOn(ClienteController.class).actualizar(id, cliente)).withRel("actualizar"));
         model.add(linkTo(methodOn(ClienteController.class).eliminar(id)).withRel("eliminar"));
 
@@ -60,7 +60,7 @@ public class ClienteController {
     @GetMapping
     @Operation(summary = "Listar todos los clientes", description = "Devuelve una lista de todos los clientes")
     @ApiResponse(responseCode = "200", description = "Lista de clientes obtenida correctamente")
-    public ResponseEntity<CollectionModel<EntityModel<Cliente>>> listar() {
+    public ResponseEntity<CollectionModel<EntityModel<Cliente>>> ObtenerTodos() {
         List<Cliente> clientes = clienteService.obtenerTodos();
 
         List<EntityModel<Cliente>> modelos = clientes.stream().map(c -> {
@@ -72,7 +72,7 @@ public class ClienteController {
         }).collect(Collectors.toList());
 
         CollectionModel<EntityModel<Cliente>> collectionModel = CollectionModel.of(modelos);
-        collectionModel.add(linkTo(methodOn(ClienteController.class).listar()).withSelfRel());
+        collectionModel.add(linkTo(methodOn(ClienteController.class).ObtenerTodos()).withSelfRel());
         collectionModel.add(linkTo(methodOn(ClienteController.class).registrar(new Cliente())).withRel("registrar"));
 
         return ResponseEntity.ok(collectionModel);
@@ -86,7 +86,7 @@ public class ClienteController {
 
         EntityModel<Cliente> model = EntityModel.of(actualizado);
         model.add(linkTo(methodOn(ClienteController.class).obtenerPorId(id)).withSelfRel());
-        model.add(linkTo(methodOn(ClienteController.class).listar()).withRel("todos"));
+        model.add(linkTo(methodOn(ClienteController.class).ObtenerTodos()).withRel("todos"));
         model.add(linkTo(methodOn(ClienteController.class).eliminar(id)).withRel("eliminar"));
 
         return ResponseEntity.ok(model);

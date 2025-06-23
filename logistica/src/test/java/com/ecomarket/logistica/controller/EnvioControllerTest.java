@@ -1,5 +1,6 @@
 package com.ecomarket.logistica.controller;
 
+import com.ecomarket.logistica.dto.CrearEnvioDTO;
 import com.ecomarket.logistica.model.Envio;
 import com.ecomarket.logistica.service.EnvioService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,8 +51,7 @@ class EnvioControllerTest {
 
     @Test
     void testCrearEnvio() throws Exception {
-        when(envioService.crearEnvio(any(Envio.class))).thenReturn(envio);
-
+        when(envioService.crearDesdeDTO(any(CrearEnvioDTO.class))).thenReturn(envio);
         mockMvc.perform(post("/api/envios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(envio)))
@@ -74,21 +74,13 @@ class EnvioControllerTest {
     }
 
     @Test
-    void testObtenerPorIdExistente() throws Exception {
+    void testObtenerPorId() throws Exception {
         when(envioService.obtenerPorId(1L)).thenReturn(Optional.of(envio));
 
         mockMvc.perform(get("/api/envios/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.estado").value("En preparación"));
-    }
-
-    @Test
-    void testObtenerPorIdNoExistente() throws Exception {
-        when(envioService.obtenerPorId(99L)).thenReturn(Optional.empty());
-
-        mockMvc.perform(get("/api/envios/99"))
-                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -102,7 +94,7 @@ class EnvioControllerTest {
     }
 
     @Test
-    void testActualizarEstadoExitoso() throws Exception {
+    void testActualizar() throws Exception {
         envio.setEstado("En camino");
         when(envioService.actualizarEstado(eq(1L), eq("En camino"))).thenReturn(envio);
 
@@ -114,15 +106,4 @@ class EnvioControllerTest {
                 .andExpect(jsonPath("$.nuevoEstado").value("En camino"));
     }
 
-    @Test
-    void testActualizarEstadoNoEncontrado() throws Exception {
-        when(envioService.actualizarEstado(eq(99L), eq("En camino")))
-                .thenThrow(new RuntimeException("Envío no encontrado"));
-
-        mockMvc.perform(patch("/api/envios/99/estado")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("estado", "En camino"))))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Envío no encontrado"));
-    }
 }

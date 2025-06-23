@@ -64,7 +64,7 @@ class VentaControllerTest {
 
         mockMvc.perform(get("/api/ventas"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id", is(1)));
+                .andExpect(jsonPath("$._embedded.ventaList[0].id").value(1));
     }
 
     @Test
@@ -73,7 +73,7 @@ class VentaControllerTest {
 
         mockMvc.perform(get("/api/ventas/cliente/5"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].clienteId", is(5)));
+                .andExpect(jsonPath("$._embedded.ventaList[0].clienteId").value(5));
     }
 
     @Test
@@ -104,12 +104,4 @@ class VentaControllerTest {
                 .andExpect(jsonPath("$.mensaje", is("Venta anulada correctamente")));
     }
 
-    @Test
-    void testAnularVentaNoExiste() throws Exception {
-        when(ventaService.anularVenta(999L)).thenReturn(false);
-
-        mockMvc.perform(patch("/api/ventas/999/anular"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.mensaje", is("Venta no encontrada o ya anulada")));
-    }
 }

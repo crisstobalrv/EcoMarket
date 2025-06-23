@@ -1,9 +1,11 @@
 package com.ecomarket.logistica.service;
 
+import com.ecomarket.logistica.dto.CrearEnvioDTO;
 import com.ecomarket.logistica.model.Envio;
 import com.ecomarket.logistica.repository.EnvioRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
@@ -21,21 +23,42 @@ public class EnvioService {
         this.restTemplate = restTemplate;
     }
 
-    public Envio crearEnvio(Envio envio) {
-        // Validar que no exista ya un envío para esta venta
-        if (!envioRepo.findByVentaId(envio.getVentaId()).isEmpty()) {
+    public Envio crearDesdeDTO(CrearEnvioDTO dto) {
+        Long ventaId = dto.getVentaId();
+        String direccion = dto.getDireccionEntrega();
+        System.out.println("DTO recibido: ventaId=" + dto.getVentaId() + ", direccion=" + dto.getDireccionEntrega());
+
+        // Validar que ya no exista un envío para la venta
+        if (!envioRepo.findByVentaId(ventaId).isEmpty()) {
             throw new RuntimeException("Ya existe un envío registrado para esta venta.");
         }
 
-        // Validar que la venta exista (por lo tanto, que el pedido esté pagado)
-        if (!ventaExiste(envio.getVentaId())) {
+        // Validar existencia de la venta en microservicio
+        try {
+            String url = "http://localhost:8084/api/ventas/" + ventaId;
+            restTemplate.getForEntity(url, String.class);
+        } catch (HttpClientErrorException.NotFound e) {
             throw new RuntimeException("No se puede crear el envío: la venta no existe.");
+        } catch (Exception e) {
+            throw new RuntimeException("Error al contactar el microservicio de ventas: " + e.getMessage());
         }
 
+        // Validar dirección
+        if (direccion == null || direccion.isBlank()) {
+            throw new RuntimeException("La dirección de entrega no puede estar vacía.");
+        }
+
+        // Crear el envío
+        Envio envio = new Envio();
+        envio.setVentaId(ventaId);
+        envio.setDireccionEntrega(direccion);
         envio.setEstado("En preparación");
         envio.setFechaEnvio(LocalDate.now());
+
         return envioRepo.save(envio);
     }
+
+
 
     public List<Envio> obtenerTodos() {
         return envioRepo.findAll();
@@ -57,15 +80,5 @@ public class EnvioService {
         return envioRepo.save(envio);
     }
 
-    private boolean ventaExiste(Long ventaId) {
-        try {
-            String url = "http://localhost:8086/api/ventas/" + ventaId;
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            return response.getStatusCode().is2xxSuccessful();
-        } catch (Exception e) {
-            e.printStackTrace(); // <- para que veas el error exacto en consola
-            return false;
-        }
-    }
 }
 

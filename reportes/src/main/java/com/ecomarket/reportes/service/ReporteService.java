@@ -39,14 +39,14 @@ public class ReporteService {
     }
 
     public Reporte generarReporteVentasPorFecha(LocalDate desde, LocalDate hasta, List<Venta> ventas) {
-        double total = ventas.stream()
+        double totalVendido = ventas.stream()
                 .mapToDouble(Venta::getTotalVenta)
                 .sum();
 
         Map<String, Object> reporteData = new LinkedHashMap<>();
         reporteData.put("fechaDesde", desde);
         reporteData.put("fechaHasta", hasta);
-        reporteData.put("totalVendido", total);
+        reporteData.put("totalVendido", totalVendido);
         reporteData.put("ventas", ventas);
 
         try {

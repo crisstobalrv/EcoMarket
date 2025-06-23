@@ -1,7 +1,9 @@
 package com.ecomarket.reportes.controller;
 
 import com.ecomarket.reportes.external.Pedido;
+import com.ecomarket.reportes.external.PedidoEmbeddedWrapper;
 import com.ecomarket.reportes.external.Venta;
+import com.ecomarket.reportes.external.VentasWrapper;
 import com.ecomarket.reportes.model.Reporte;
 import com.ecomarket.reportes.service.ReporteService;
 import org.junit.jupiter.api.Test;
@@ -13,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -57,19 +58,37 @@ class ReporteControllerTest {
 
     @Test
     void testGenerarReporteVentasPorFecha() throws Exception {
+        // Crear wrapper simulado con lista vacía
+        VentasWrapper wrapper = new VentasWrapper();
+        VentasWrapper.Embedded embedded = new VentasWrapper.Embedded();
+        embedded.setVentaList(List.of()); // usa "setVentaList" según tu DTO
+        wrapper.set_embedded(embedded);
+
+        // Simular respuesta del microservicio de ventas
+        Mockito.when(restTemplate.getForObject(anyString(), eq(VentasWrapper.class))).thenReturn(wrapper);
+
+        // Simular lógica de reporte
         Reporte r = Reporte.builder().id(3L).tipo("Ventas por fecha").datos("{}").build();
-        Mockito.when(restTemplate.getForObject(anyString(), eq(Venta[].class))).thenReturn(new Venta[0]);
         Mockito.when(reporteService.generarReporteVentasPorFecha(any(), any(), anyList())).thenReturn(r);
 
-        mockMvc.perform(get("/api/reportes/ventas?desde=2024-01-01&hasta=2024-12-31"))
+        // Ejecutar petición con formato correcto de fecha (dd/MM/yyyy)
+        mockMvc.perform(get("/api/reportes/ventas?desde=01/01/2024&hasta=31/12/2024"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tipo").value("Ventas por fecha"));
     }
 
+
+
     @Test
     void testGenerarReportePedidosPorEstado() throws Exception {
         Reporte r = Reporte.builder().id(4L).tipo("Pedidos por estado").datos("{}").build();
-        Mockito.when(restTemplate.getForObject(anyString(), eq(Pedido[].class))).thenReturn(new Pedido[0]);
+
+        PedidoEmbeddedWrapper wrapper = new PedidoEmbeddedWrapper();
+        PedidoEmbeddedWrapper.EmbeddedPedidos embedded = new PedidoEmbeddedWrapper.EmbeddedPedidos();
+        embedded.setPedidoList(List.of());
+        wrapper.set_embedded(embedded);
+
+        Mockito.when(restTemplate.getForObject(anyString(), eq(PedidoEmbeddedWrapper.class))).thenReturn(wrapper);
         Mockito.when(reporteService.generarReportePedidosPorEstado(anyList())).thenReturn(r);
 
         mockMvc.perform(get("/api/reportes/pedidos/por-estado"))
@@ -80,7 +99,13 @@ class ReporteControllerTest {
     @Test
     void testGenerarProductosMasVendidos() throws Exception {
         Reporte r = Reporte.builder().id(5L).tipo("Productos más vendidos").datos("{}").build();
-        Mockito.when(restTemplate.getForObject(anyString(), eq(Pedido[].class))).thenReturn(new Pedido[0]);
+
+        PedidoEmbeddedWrapper wrapper = new PedidoEmbeddedWrapper();
+        PedidoEmbeddedWrapper.EmbeddedPedidos embedded = new PedidoEmbeddedWrapper.EmbeddedPedidos();
+        embedded.setPedidoList(List.of());
+        wrapper.set_embedded(embedded);
+
+        Mockito.when(restTemplate.getForObject(anyString(), eq(PedidoEmbeddedWrapper.class))).thenReturn(wrapper);
         Mockito.when(reporteService.generarReporteProductosMasVendidos(anyList())).thenReturn(r);
 
         mockMvc.perform(get("/api/reportes/productos-mas-vendidos"))

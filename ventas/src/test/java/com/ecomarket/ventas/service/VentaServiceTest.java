@@ -1,5 +1,6 @@
 package com.ecomarket.ventas.service;
 
+import com.ecomarket.ventas.dto.CrearVentaDTO;
 import com.ecomarket.ventas.external.DetallePedido;
 import com.ecomarket.ventas.external.Pedido;
 import com.ecomarket.ventas.model.Venta;
@@ -30,9 +31,9 @@ class VentaServiceTest {
 
     @Test
     void testRegistrarVenta() {
-        Venta venta = new Venta();
-        venta.setPedidoId(1L);
-        venta.setMedioPago("efectivo");
+        CrearVentaDTO ventaDTO = new CrearVentaDTO();
+        ventaDTO.setPedidoId(1L);
+        ventaDTO.setMedioPago("efectivo");
 
         Pedido pedido = new Pedido();
         pedido.setId(1L);
@@ -45,12 +46,11 @@ class VentaServiceTest {
 
         pedido.setDetalles(List.of(detalle));
 
-
         when(ventaRepo.findByPedidoId(1L)).thenReturn(Collections.emptyList());
         when(restTemplate.getForObject(contains("/api/pedidos/1"), eq(Pedido.class))).thenReturn(pedido);
         when(ventaRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Venta registrada = ventaService.registrarVentaDesdeDTO(venta);
+        Venta registrada = ventaService.registrarVentaDesdeDTO(ventaDTO);
 
         assertEquals("Pagada", registrada.getEstado());
         assertEquals(5000.0, registrada.getTotalVenta());
@@ -61,6 +61,7 @@ class VentaServiceTest {
         verify(restTemplate).put(contains("/descontar/2"), isNull());
         verify(ventaRepo).save(any());
     }
+
 
     @Test
     void testGenerarFactura() {

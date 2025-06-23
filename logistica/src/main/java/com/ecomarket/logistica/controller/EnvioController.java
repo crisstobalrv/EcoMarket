@@ -1,5 +1,7 @@
 package com.ecomarket.logistica.controller;
 
+import com.ecomarket.logistica.dto.ActualizarEstadoDTO;
+import com.ecomarket.logistica.dto.CrearEnvioDTO;
 import com.ecomarket.logistica.model.Envio;
 import com.ecomarket.logistica.service.EnvioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +17,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/envios")
-@Tag(name = "Envios", description = "API para gestionar envíos de productos")
+@Tag(name = "Logistica", description = "Gestionar envíos de productos")
 public class EnvioController {
 
     private final EnvioService envioService;
@@ -26,13 +28,13 @@ public class EnvioController {
 
     @PostMapping
     @Operation(summary = "Crear un nuevo envío")
-    public ResponseEntity<EntityModel<Envio>> crearEnvio(@RequestBody Envio envio) {
-        Envio creado = envioService.crearEnvio(envio);
+    public ResponseEntity<EntityModel<Envio>> crearEnvio(@RequestBody CrearEnvioDTO dto) {
+        Envio creado = envioService.crearDesdeDTO(dto);
 
         EntityModel<Envio> model = EntityModel.of(creado,
                 linkTo(methodOn(EnvioController.class).obtenerPorId(creado.getId())).withSelfRel(),
                 linkTo(methodOn(EnvioController.class).listarTodos()).withRel("todos"),
-                linkTo(methodOn(EnvioController.class).actualizarEstado(creado.getId(), Map.of("estado", "En camino"))).withRel("actualizar_estado"),
+                linkTo(methodOn(EnvioController.class).actualizarEstado(creado.getId(), new ActualizarEstadoDTO("En camino"))).withRel("actualizar_estado"),
                 linkTo(methodOn(EnvioController.class).obtenerPorVenta(creado.getVentaId())).withRel("por_venta")
         );
 
@@ -40,16 +42,15 @@ public class EnvioController {
                 .body(model);
     }
 
+
     @GetMapping
     @Operation(summary = "Listar todos los envíos")
     public ResponseEntity<CollectionModel<EntityModel<Envio>>> listarTodos() {
         List<EntityModel<Envio>> envios = envioService.obtenerTodos().stream()
                 .map(envio -> EntityModel.of(envio,
                         linkTo(methodOn(EnvioController.class).obtenerPorId(envio.getId())).withSelfRel(),
-                        linkTo(methodOn(EnvioController.class).actualizarEstado(envio.getId(), Map.of("estado", "En camino"))).withRel("actualizar_estado"),
-                        linkTo(methodOn(EnvioController.class).obtenerPorVenta(envio.getVentaId())).withRel("por_venta")
-                ))
-                .toList();
+                        linkTo(methodOn(EnvioController.class).actualizarEstado(envio.getId(), new ActualizarEstadoDTO("En camino"))).withRel("actualizar_estado"),
+                        linkTo(methodOn(EnvioController.class).obtenerPorVenta(envio.getVentaId())).withRel("por_venta"))).toList();
 
         return ResponseEntity.ok(
                 CollectionModel.of(envios, linkTo(methodOn(EnvioController.class).listarTodos()).withSelfRel())
@@ -63,7 +64,7 @@ public class EnvioController {
                 .map(envio -> EntityModel.of(envio,
                         linkTo(methodOn(EnvioController.class).obtenerPorId(id)).withSelfRel(),
                         linkTo(methodOn(EnvioController.class).listarTodos()).withRel("todos"),
-                        linkTo(methodOn(EnvioController.class).actualizarEstado(id, Map.of("estado", "En camino"))).withRel("actualizar_estado"),
+                        linkTo(methodOn(EnvioController.class).actualizarEstado(envio.getId(), new ActualizarEstadoDTO("En camino"))).withRel("actualizar_estado"),
                         linkTo(methodOn(EnvioController.class).obtenerPorVenta(envio.getVentaId())).withRel("por_venta")
                 ))
                 .map(ResponseEntity::ok)
@@ -76,7 +77,7 @@ public class EnvioController {
         List<EntityModel<Envio>> envios = envioService.obtenerPorVenta(ventaId).stream()
                 .map(envio -> EntityModel.of(envio,
                         linkTo(methodOn(EnvioController.class).obtenerPorId(envio.getId())).withSelfRel(),
-                        linkTo(methodOn(EnvioController.class).actualizarEstado(envio.getId(), Map.of("estado", "En camino"))).withRel("actualizar_estado")
+                        linkTo(methodOn(EnvioController.class).actualizarEstado(envio.getId(), new ActualizarEstadoDTO("En camino"))).withRel("actualizar_estado")
                 ))
                 .toList();
 
@@ -87,9 +88,9 @@ public class EnvioController {
 
     @PatchMapping("/{id}/estado")
     @Operation(summary = "Actualizar el estado de un envío")
-    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> estado) {
+    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody ActualizarEstadoDTO dto) {
         try {
-            Envio actualizado = envioService.actualizarEstado(id, estado.get("estado"));
+            Envio actualizado = envioService.actualizarEstado(id, dto.getEstado());
 
             Map<String, Object> respuesta = new LinkedHashMap<>();
             respuesta.put("mensaje", "Estado del envío actualizado correctamente.");
@@ -105,4 +106,5 @@ public class EnvioController {
             return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         }
     }
+
 }

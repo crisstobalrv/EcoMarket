@@ -120,7 +120,6 @@ class PedidoServiceTest {
     void testEliminar() {
         Long pedidoId = 7L;
 
-        // No se necesita mockear nada porque deleteById no retorna nada
         doNothing().when(pedidoRepository).deleteById(pedidoId);
 
         pedidoService.eliminarPorId(pedidoId);

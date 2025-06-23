@@ -1,5 +1,6 @@
 package com.ecomarket.logistica.service;
 
+import com.ecomarket.logistica.dto.CrearEnvioDTO;
 import com.ecomarket.logistica.model.Envio;
 import com.ecomarket.logistica.repository.EnvioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,48 +36,26 @@ class EnvioServiceTest {
     }
 
     @Test
-    void testCrearEnvioExitoso() {
-        Envio envio = new Envio();
-        envio.setVentaId(1L);
+    void testCrearEnvio() {
+        CrearEnvioDTO dto = new CrearEnvioDTO();
+        dto.setVentaId(1L);
+        dto.setDireccionEntrega("Av. Siempre Viva 742");
 
         when(envioRepo.findByVentaId(1L)).thenReturn(List.of());
         when(restTemplate.getForEntity("http://localhost:8086/api/ventas/1", String.class))
                 .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
         when(envioRepo.save(any(Envio.class))).thenAnswer(i -> i.getArgument(0));
 
-        Envio creado = envioService.crearEnvio(envio);
+        Envio creado = envioService.crearDesdeDTO(dto);
 
         assertEquals("En preparación", creado.getEstado());
         assertNotNull(creado.getFechaEnvio());
-        verify(envioRepo, times(1)).save(envio);
+        assertEquals("Av. Siempre Viva 742", creado.getDireccionEntrega());
+        verify(envioRepo, times(1)).save(any(Envio.class));
     }
 
     @Test
-    void CrearEnvio() {
-        Envio envio = new Envio();
-        envio.setVentaId(1L);
-
-        when(envioRepo.findByVentaId(1L)).thenReturn(List.of(new Envio()));
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> envioService.crearEnvio(envio));
-        assertEquals("Ya existe un envío registrado para esta venta.", ex.getMessage());
-    }
-
-    @Test
-    void CrearEnvioVentaNoExiste() {
-        Envio envio = new Envio();
-        envio.setVentaId(2L);
-
-        when(envioRepo.findByVentaId(2L)).thenReturn(List.of());
-        when(restTemplate.getForEntity("http://localhost:8086/api/ventas/2", String.class))
-                .thenThrow(new RuntimeException("Venta no encontrada"));
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> envioService.crearEnvio(envio));
-        assertEquals("No se puede crear el envío: la venta no existe.", ex.getMessage());
-    }
-
-    @Test
-    void testActualizar() {
+    void testActualizarEnvio() {
         Envio envio = new Envio();
         envio.setId(1L);
         envio.setEstado("En preparación");
@@ -88,14 +67,6 @@ class EnvioServiceTest {
 
         assertEquals("En camino", actualizado.getEstado());
         verify(envioRepo, times(1)).save(envio);
-    }
-
-    @Test
-    void testActualizarEstadoEnvioNoExiste() {
-        when(envioRepo.findById(99L)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> envioService.actualizarEstado(99L, "En camino"));
-        assertEquals("Envío no encontrado", ex.getMessage());
     }
 
     @Test

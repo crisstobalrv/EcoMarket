@@ -32,7 +32,7 @@ class ClienteControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void registrarCliente_deberiaRetornar201() throws Exception {
+    void registrarCliente() throws Exception {
         Cliente cliente = Cliente.builder()
                 .nombre("Luis")
                 .apellido("Gómez")
@@ -53,7 +53,7 @@ class ClienteControllerTest {
     }
 
     @Test
-    void obtenerClientePorId_deberiaRetornar200() throws Exception {
+    void obtenerClientePorId() throws Exception {
         Cliente cliente = Cliente.builder()
                 .id(1L)
                 .nombre("Ana")
@@ -73,7 +73,7 @@ class ClienteControllerTest {
     }
 
     @Test
-    void listarClientes_deberiaRetornarLista() throws Exception {
+    void listarClientes() throws Exception {
         List<Cliente> lista = Arrays.asList(
                 Cliente.builder().id(1L).nombre("Juan").rut("11111111-1").correo("juan@mail.com").build(),
                 Cliente.builder().id(2L).nombre("Maria").rut("22222222-2").correo("maria@mail.com").build()
@@ -83,13 +83,14 @@ class ClienteControllerTest {
 
         mockMvc.perform(get("/api/clientes"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].nombre").value("Juan"))
-                .andExpect(jsonPath("$[1].nombre").value("Maria"));
+                .andExpect(jsonPath("$._embedded.clienteList", hasSize(2)))
+                .andExpect(jsonPath("$._embedded.clienteList[0].nombre").value("Juan"))
+                .andExpect(jsonPath("$._embedded.clienteList[1].nombre").value("Maria"));
     }
 
+
     @Test
-    void actualizarCliente_deberiaRetornarClienteActualizado() throws Exception {
+    void actualizarCliente() throws Exception {
         Cliente actualizado = Cliente.builder()
                 .id(1L)
                 .nombre("Luis Miguel")
@@ -111,7 +112,7 @@ class ClienteControllerTest {
     }
 
     @Test
-    void eliminarCliente_deberiaRetornar204() throws Exception {
+    void eliminarCliente() throws Exception {
         doNothing().when(clienteService).eliminar(1L);
 
         mockMvc.perform(delete("/api/clientes/1"))

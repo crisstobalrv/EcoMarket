@@ -1,27 +1,19 @@
 package com.ecomarket.reportes.external;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class PedidoEmbeddedWrapper {
-    private Embedded _embedded;
+    @JsonProperty("_embedded")
+    private EmbeddedPedidos _embedded;
 
-    public Embedded get_embedded() {
-        return _embedded;
-    }
-
-    public void set_embedded(Embedded _embedded) {
-        this._embedded = _embedded;
-    }
-
-    public static class Embedded {
+    @Data
+    public static class EmbeddedPedidos {
+        @JsonProperty("pedidoList")
         private List<Pedido> pedidoList;
-
-        public List<Pedido> getPedidoList() {
-            return pedidoList;
-        }
-
-        public void setPedidoList(List<Pedido> pedidoList) {
-            this.pedidoList = pedidoList;
-        }
     }
 }
+

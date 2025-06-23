@@ -47,9 +47,7 @@ public class ProductoController {
                 linkTo(methodOn(ProductoController.class).listarProductos()).withRel("Listar todos los productos"),
                 linkTo(methodOn(ProductoController.class).actualizar(creado.getId(), new ProductoUpdateRequest())).withRel("Actualizar producto"),
                 linkTo(methodOn(ProductoController.class).eliminarProducto(creado.getId())).withRel("Eliminar producto"),
-                linkTo(methodOn(ProductoController.class).obtenerPorCategoria(creado.getCategoria())).withRel("Listar por categoria"),
-                linkTo(methodOn(ProductoController.class).verificarDisponibilidad(creado.getId(), 1)).withRel("Verificar disponibilidad"),
-                linkTo(methodOn(ProductoController.class).descontarStock(creado.getId(), 1)).withRel("Descontar stock de un producto")
+                linkTo(methodOn(ProductoController.class).obtenerPorCategoria(creado.getCategoria())).withRel("Listar por categoria")
         );
 
         return ResponseEntity.status(201).body(model);
@@ -67,9 +65,7 @@ public class ProductoController {
                             linkTo(methodOn(ProductoController.class).listarProductos()).withRel("Listar todos los productos"),
                             linkTo(methodOn(ProductoController.class).actualizar(producto.getId(), updateRequest)).withRel("Actualizar producto"),
                             linkTo(methodOn(ProductoController.class).eliminarProducto(producto.getId())).withRel("Eliminar producto"),
-                            linkTo(methodOn(ProductoController.class).obtenerPorCategoria(producto.getCategoria())).withRel("Listar por categoría"),
-                            linkTo(methodOn(ProductoController.class).verificarDisponibilidad(producto.getId(), 1)).withRel("Verificar disponibilidad"),
-                            linkTo(methodOn(ProductoController.class).descontarStock(producto.getId(), 1)).withRel("Descontar stock de un producto")
+                            linkTo(methodOn(ProductoController.class).obtenerPorCategoria(producto.getCategoria())).withRel("Listar por categoría")
                     );
                 })
                 .collect(Collectors.toList());
@@ -91,9 +87,7 @@ public class ProductoController {
                     linkTo(methodOn(ProductoController.class).listarProductos()).withRel("Listar todos los productos"),
                     linkTo(methodOn(ProductoController.class).actualizar(producto.getId(), updateRequest)).withRel("Actualizar producto"),
                     linkTo(methodOn(ProductoController.class).eliminarProducto(id)).withRel("Eliminar producto"),
-                    linkTo(methodOn(ProductoController.class).obtenerPorCategoria(producto.getCategoria())).withRel("Listar por categoria"),
-                    linkTo(methodOn(ProductoController.class).verificarDisponibilidad(id, 1)).withRel("Verificar disponibilidad"),
-                    linkTo(methodOn(ProductoController.class).descontarStock(id, 1)).withRel("Descontar stock de un producto")
+                    linkTo(methodOn(ProductoController.class).obtenerPorCategoria(producto.getCategoria())).withRel("Listar por categoria")
             );
             return ResponseEntity.ok(model);
         } catch (RuntimeException e) {
@@ -118,9 +112,7 @@ public class ProductoController {
         EntityModel<Producto> productoModel = EntityModel.of(actualizado,
                 linkTo(methodOn(ProductoController.class).obtenerProductoPorId(actualizado.getId())).withSelfRel(),
                 linkTo(methodOn(ProductoController.class).listarProductos()).withRel("Listar todos los productos"),
-                linkTo(methodOn(ProductoController.class).obtenerPorCategoria(actualizado.getCategoria())).withRel("Listar por categoria"),
-                linkTo(methodOn(ProductoController.class).descontarStock(actualizado.getId(), 1)).withRel("Descontar stock"),
-                linkTo(methodOn(ProductoController.class).verificarDisponibilidad(actualizado.getId(), 1)).withRel("Verificar disponibilidad")
+                linkTo(methodOn(ProductoController.class).obtenerPorCategoria(actualizado.getCategoria())).withRel("Listar por categoria")
                 );
 
         return ResponseEntity.ok(Map.of(
@@ -140,9 +132,7 @@ public class ProductoController {
                         linkTo(methodOn(ProductoController.class).obtenerProductoPorId(p.getId())).withRel("Obtener producto"),
                         linkTo(methodOn(ProductoController.class).listarProductos()).withRel("Listar todos los productos"),
                         linkTo(methodOn(ProductoController.class).actualizar(p.getId(), new ProductoUpdateRequest())).withRel("Actualizar producto"),
-                        linkTo(methodOn(ProductoController.class).eliminarProducto(p.getId())).withRel("Eliminar producto"),
-                        linkTo(methodOn(ProductoController.class).verificarDisponibilidad(p.getId(), 1)).withRel("Verificar disponibilidad"),
-                        linkTo(methodOn(ProductoController.class).descontarStock(p.getId(), 1)).withRel("Descontar stock del producto")
+                        linkTo(methodOn(ProductoController.class).eliminarProducto(p.getId())).withRel("Eliminar producto")
                 ))
                 .collect(Collectors.toList());
 
@@ -172,21 +162,13 @@ public class ProductoController {
     @Operation(summary = "Descontar stock de producto")
     @ApiResponse(responseCode = "200", description = "Stock descontado correctamente")
     @ApiResponse(responseCode = "404", description = "Producto no encontrado")
-    public ResponseEntity<EntityModel<MensajeResponse>> descontarStock(@PathVariable Long id, @PathVariable Integer cantidad) {
+    public ResponseEntity<MensajeResponse> descontarStock(@PathVariable Long id, @PathVariable Integer cantidad) {
         productoService.descontarStock(id, cantidad);
 
         MensajeResponse respuesta = new MensajeResponse("Stock descontado");
-
-        EntityModel<MensajeResponse> model = EntityModel.of(respuesta,
-                linkTo(methodOn(ProductoController.class).obtenerProductoPorId(id)).withRel("Obtener producto por id"),
-                linkTo(methodOn(ProductoController.class).listarProductos()).withRel("Listar todos los productos"),
-                linkTo(methodOn(ProductoController.class).verificarDisponibilidad(id, 1)).withRel("Verificar disponibilidad"),
-                linkTo(methodOn(ProductoController.class).actualizar(id, new ProductoUpdateRequest())).withRel("Actualizar producto"),
-                linkTo(methodOn(ProductoController.class).eliminarProducto(id)).withRel("Eliminar producto")
-        );
-
-        return ResponseEntity.ok(model);
+        return ResponseEntity.ok(respuesta);
     }
+
 
 
 

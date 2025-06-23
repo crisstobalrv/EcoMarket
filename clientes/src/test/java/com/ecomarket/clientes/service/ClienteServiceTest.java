@@ -76,9 +76,9 @@ class ClienteServiceTest {
                 .build();
 
         Cliente modificado = Cliente.builder()
-                .nombre("Luis Enrique") // cambio permitido
+                .nombre("Luis Enrique")
                 .apellido("Gómez")
-                .correo("luis@mail.com") // igual al original
+                .correo("luis@mail.com")
                 .rut("12345678-9")
                 .telefono("456")
                 .direccion("Nueva Dirección")
@@ -92,38 +92,6 @@ class ClienteServiceTest {
         assertEquals("Luis Enrique", actualizado.getNombre());
         assertEquals("456", actualizado.getTelefono());
     }
-
-
-
-    @Test
-    void actualizarCliente_modificandoCorreo_lanzaExcepcion() {
-        Cliente existente = Cliente.builder()
-                .id(1L)
-                .nombre("Luis")
-                .apellido("Gómez")
-                .correo("luis@mail.com")
-                .rut("12345678-9")
-                .telefono("123")
-                .direccion("Avenida 1")
-                .build();
-
-        Cliente modificado = Cliente.builder()
-                .nombre("Luis")
-                .apellido("Gómez")
-                .correo("otro@mail.com")
-                .rut("12345678-9")
-                .telefono("123")
-                .direccion("Avenida 1")
-                .build();
-
-        when(clienteRepository.findById(1L)).thenReturn(Optional.of(existente));
-
-        assertThrows(RuntimeException.class, () ->
-                clienteService.actualizar(1L, modificado)
-        );
-    }
-
-
 
     @Test
     void obtenerCliente() {

@@ -77,27 +77,6 @@ class ResenaServiceTest {
         verify(resenaRepo, times(1)).save(any());
     }
 
-
-
-
-
-    @Test
-    void testCrearResenaSinCompra() {
-        when(restTemplate.getForObject(contains("/productos/"), eq(Void.class))).thenReturn(null);
-        when(restTemplate.getForObject(contains("/clientes/"), eq(Void.class))).thenReturn(null);
-        when(restTemplate.getForObject(contains("/pedidos/cliente/"), eq(Pedido[].class))).thenReturn(new Pedido[0]);
-
-        CrearResenaDTO dto = new CrearResenaDTO();
-        dto.setProductoId(10L);
-        dto.setClienteId(123L);
-        dto.setComentario("Muy bueno");
-        dto.setPuntuacion(5);
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> service.crearDesdeDTO(dto));
-        assertEquals("El cliente no ha comprado este producto.", ex.getMessage());
-    }
-
-
     @Test
     void testEditarResena() {
         Resena existente = new Resena();

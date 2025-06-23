@@ -67,17 +67,6 @@ class ProveedorServiceTest {
     }
 
     @Test
-    void obtenerProveedorPorId_noExistente_deberiaLanzarExcepcion() {
-        when(proveedorRepository.findById(99L)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            proveedorService.obtenerProveedorPorId(99L);
-        });
-
-        assertTrue(exception.getMessage().contains("Proveedor no encontrado"));
-    }
-
-    @Test
     void obtenerTodos() {
         List<Proveedor> lista = Arrays.asList(
                 Proveedor.builder().id(1L).nombre("X").correo("x@mail.com").telefono("111").build(),

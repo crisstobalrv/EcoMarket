@@ -3,6 +3,7 @@ package com.ecomarket.reportes.controller;
 import com.ecomarket.reportes.external.Pedido;
 import com.ecomarket.reportes.external.PedidoEmbeddedWrapper;
 import com.ecomarket.reportes.external.Venta;
+import com.ecomarket.reportes.external.VentasWrapper;
 import com.ecomarket.reportes.model.Reporte;
 import com.ecomarket.reportes.service.ReporteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,13 +70,13 @@ public class ReporteController {
         LocalDate h = LocalDate.parse(hasta, formatter);
 
         String urlVentas = "http://localhost:8084/api/ventas";
-        Venta[] ventasTotales = restTemplate.getForObject(urlVentas, Venta[].class);
+        VentasWrapper wrapper = restTemplate.getForObject(urlVentas, VentasWrapper.class);
+        List<Venta> ventasTotales = wrapper.get_embedded().getVentaList();
 
-        List<Venta> filtradas = Arrays.stream(ventasTotales)
+        List<Venta> filtradas = ventasTotales.stream()
                 .filter(v -> v.getFecha() != null)
                 .filter(v -> !v.getFecha().isBefore(d) && !v.getFecha().isAfter(h))
                 .toList();
-
 
         Reporte reporte = reporteService.generarReporteVentasPorFecha(d, h, filtradas);
 
@@ -84,6 +85,7 @@ public class ReporteController {
                 linkTo(methodOn(ReporteController.class).listarTodos()).withRel("todos")
         );
     }
+
 
 
     @Operation(summary = "Generar reporte de pedidos por estado")
