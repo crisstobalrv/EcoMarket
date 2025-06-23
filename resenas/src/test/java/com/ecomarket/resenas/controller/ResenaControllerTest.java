@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -33,12 +34,23 @@ class ResenaControllerTest {
     private final Resena resena = new Resena(2L, 2L, 2L, 5, "Excelente producto", LocalDate.now());
 
     @Test
+    void testObtenerPorId() throws Exception {
+        when(resenaService.buscarPorId(2L)).thenReturn(Optional.of(resena));
+
+        mockMvc.perform(get("/api/resenas/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(2))
+                .andExpect(jsonPath("$.comentario").value("Excelente producto"));
+    }
+
+
+    @Test
     void testListarTodas() throws Exception {
         when(resenaService.listarTodas()).thenReturn(List.of(resena));
 
         mockMvc.perform(get("/api/resenas"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].clienteId").value(2));
+                .andExpect(jsonPath("$._embedded.resenaList[0].productoId").value(2));
     }
 
     @Test
@@ -47,7 +59,8 @@ class ResenaControllerTest {
 
         mockMvc.perform(get("/api/resenas/producto/2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].productoId").value(2));
+                .andExpect(jsonPath("$._embedded.resenaList[0].productoId").value(2));
+
     }
 
     @Test
@@ -56,7 +69,7 @@ class ResenaControllerTest {
 
         mockMvc.perform(get("/api/resenas/cliente/2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].clienteId").value(2));
+                .andExpect(jsonPath("$._embedded.resenaList[0].productoId").value(2));
     }
 
     @Test

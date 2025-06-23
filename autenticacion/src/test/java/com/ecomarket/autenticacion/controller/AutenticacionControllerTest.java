@@ -36,7 +36,7 @@ class AutenticacionControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void registrarUsuario_deberiaRetornar201() throws Exception {
+    void registrarUsuario() throws Exception {
         Usuario usuario = new Usuario(1L, "Luis", "luis@mail.com", "1234", "cliente");
 
         when(autenticacionService.registrar(any(Usuario.class))).thenReturn(usuario);
@@ -50,13 +50,12 @@ class AutenticacionControllerTest {
                 .andExpect(jsonPath("$.email").value("luis@mail.com"))
                 .andExpect(jsonPath("$.rol").value("cliente"))
                 .andExpect(jsonPath("$._links.self.href").exists())
-                .andExpect(jsonPath("$._links.login.href").exists())
-                .andExpect(jsonPath("$._links.verificarEmail.href").exists());
+                .andExpect(jsonPath("$._links.login.href").exists());
     }
 
 
     @Test
-    void loginUsuario_credencialesValidas_deberiaRetornar200() throws Exception {
+    void loginUsuario() throws Exception {
         Usuario usuario = new Usuario(1L, "Luis", "luis@mail.com", "1234", "cliente");
 
         when(autenticacionService.login("luis@mail.com", "1234")).thenReturn(true);
@@ -74,13 +73,12 @@ class AutenticacionControllerTest {
                 .andExpect(jsonPath("$.email").value("luis@mail.com"))
                 .andExpect(jsonPath("$.rol").value("cliente"))
                 .andExpect(jsonPath("$._links.self.href").exists())
-                .andExpect(jsonPath("$._links.verificarEmail.href").exists())
                 .andExpect(jsonPath("$._links.registro.href").exists());
     }
 
 
     @Test
-    void loginUsuario_credencialesInvalidas_deberiaRetornar401() throws Exception {
+    void loginUsuario_credencialesInvalidas() throws Exception {
         when(autenticacionService.login("falso@mail.com", "mal")).thenReturn(false);
 
         mockMvc.perform(post("/api/autenticacion/login")
@@ -94,7 +92,7 @@ class AutenticacionControllerTest {
     }
 
     @Test
-    void verificarExistenciaEmail_deberiaRetornarBooleano() throws Exception {
+    void verificarExistenciaEmail() throws Exception {
         when(autenticacionRepository.findByEmail("existe@mail.com")).thenReturn(Optional.of(new Usuario()));
 
         mockMvc.perform(get("/api/autenticacion/existe")

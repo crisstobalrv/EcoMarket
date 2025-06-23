@@ -127,6 +127,18 @@ class ResenaServiceTest {
     }
 
     @Test
+    void testBuscarPorId() {
+        when(resenaRepo.findById(1L)).thenReturn(Optional.of(resena));
+
+        Optional<Resena> resultado = service.buscarPorId(1L);
+
+        assertTrue(resultado.isPresent());
+        assertEquals(resena.getId(), resultado.get().getId());
+        verify(resenaRepo, times(1)).findById(1L);
+    }
+
+
+    @Test
     void testListarTodas() {
         when(resenaRepo.findAll()).thenReturn(List.of(resena));
         List<Resena> resultado = service.listarTodas();

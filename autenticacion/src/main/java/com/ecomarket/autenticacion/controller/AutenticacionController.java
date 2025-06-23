@@ -5,6 +5,7 @@ import com.ecomarket.autenticacion.dto.RegistroRequest;
 import com.ecomarket.autenticacion.model.Usuario;
 import com.ecomarket.autenticacion.repository.AutenticacionRepository;
 import com.ecomarket.autenticacion.service.AutenticacionService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,10 +44,7 @@ public class AutenticacionController {
 
         EntityModel<Usuario> model = EntityModel.of(creado);
         model.add(linkTo(methodOn(AutenticacionController.class).registrar(datos)).withSelfRel());
-        model.add(linkTo(methodOn(AutenticacionController.class).login(
-                new LoginRequest(creado.getEmail(), creado.getPassword())
-        )).withRel("login"));
-        model.add(linkTo(methodOn(AutenticacionController.class).existeEmail(creado.getEmail())).withRel("verificarEmail"));
+        model.add(linkTo(methodOn(AutenticacionController.class).login(new LoginRequest(creado.getEmail(), creado.getPassword()))).withRel("login"));
 
         return ResponseEntity.status(201).body(model);
     }
@@ -63,7 +61,6 @@ public class AutenticacionController {
 
             EntityModel<Usuario> model = EntityModel.of(usuario,
                     linkTo(methodOn(AutenticacionController.class).login(request)).withSelfRel(),
-                    linkTo(methodOn(AutenticacionController.class).existeEmail(email)).withRel("verificarEmail"),
                     linkTo(methodOn(AutenticacionController.class).registrar(new RegistroRequest())).withRel("registro")
             );
 
@@ -73,7 +70,7 @@ public class AutenticacionController {
         }
     }
 
-
+    @Hidden
     @GetMapping("/existe")
     @Operation(summary = "Verificar si un email ya está registrado")
     public ResponseEntity<Boolean> existeEmail(@RequestParam String email) {

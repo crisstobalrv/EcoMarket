@@ -101,4 +101,24 @@ public class ResenaController {
         resenaService.eliminar(id);
         return ResponseEntity.ok(Map.of("mensaje", "Reseña eliminada exitosamente."));
     }
+
+    @Operation(summary = "Obtener reseña por ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
+        return resenaService.buscarPorId(id)
+                .map(resena -> {
+                    EntityModel<Resena> model = EntityModel.of(resena,
+                            linkTo(methodOn(ResenaController.class).buscarPorId(id)).withSelfRel(),
+                            linkTo(methodOn(ResenaController.class).listarTodas()).withRel("todas"),
+                            linkTo(methodOn(ResenaController.class).listarPorProducto(resena.getProductoId())).withRel("por_producto"),
+                            linkTo(methodOn(ResenaController.class).listarPorCliente(resena.getClienteId())).withRel("por_cliente"),
+                            linkTo(methodOn(ResenaController.class).editar(id, null)).withRel("editar"),
+                            linkTo(methodOn(ResenaController.class).eliminar(id)).withRel("eliminar")
+                    );
+                    return ResponseEntity.ok(model);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
 }

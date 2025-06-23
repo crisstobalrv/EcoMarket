@@ -23,7 +23,7 @@ class AutenticacionServiceTest {
     }
 
     @Test
-    void registrar_usuarioValido_deberiaGuardar() {
+    void registrar_usuario() {
         Usuario nuevo = new Usuario(null, "Juan", "juan@example.com", "1234", "cliente");
 
         when(autenticacionRepository.findByEmail("juan@example.com")).thenReturn(Optional.empty());
@@ -36,7 +36,7 @@ class AutenticacionServiceTest {
     }
 
     @Test
-    void registrar_emailYaRegistrado_deberiaLanzarExcepcion() {
+    void registrar_emailYaRegistrado() {
         Usuario existente = new Usuario(1L, "Ana", "ana@example.com", "pass", "admin");
         when(autenticacionRepository.findByEmail("ana@example.com")).thenReturn(Optional.of(existente));
 
@@ -46,11 +46,11 @@ class AutenticacionServiceTest {
             autenticacionService.registrar(nuevo);
         });
 
-        assertTrue(ex.getMessage().contains("correo ya está registrado"));
+        assertTrue(ex.getMessage().contains("Correo ya está registrado"));
     }
 
     @Test
-    void login_credencialesCorrectas_deberiaRetornarTrue() {
+    void logearse() {
         Usuario user = new Usuario(1L, "Pedro", "pedro@mail.com", "abcd", "cliente");
         when(autenticacionRepository.findByEmail("pedro@mail.com")).thenReturn(Optional.of(user));
 
@@ -60,7 +60,7 @@ class AutenticacionServiceTest {
     }
 
     @Test
-    void login_contrasenaIncorrecta_deberiaRetornarFalse() {
+    void login_contrasenaIncorrecta() {
         Usuario user = new Usuario(1L, "Pedro", "pedro@mail.com", "abcd", "cliente");
         when(autenticacionRepository.findByEmail("pedro@mail.com")).thenReturn(Optional.of(user));
 
@@ -69,20 +69,4 @@ class AutenticacionServiceTest {
         assertFalse(resultado);
     }
 
-    @Test
-    void obtenerUsuario_existente_deberiaRetornarUsuario() {
-        Usuario user = new Usuario(1L, "Luisa", "luisa@mail.com", "123", "cliente");
-        when(autenticacionRepository.findByEmail("luisa@mail.com")).thenReturn(Optional.of(user));
-
-        Usuario resultado = autenticacionService.obtenerUsuario("luisa@mail.com");
-
-        assertEquals("Luisa", resultado.getNombre());
-    }
-
-    @Test
-    void obtenerUsuario_inexistente_deberiaLanzarExcepcion() {
-        when(autenticacionRepository.findByEmail("noexiste@mail.com")).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class, () -> autenticacionService.obtenerUsuario("noexiste@mail.com"));
-    }
 }

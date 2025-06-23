@@ -1,5 +1,6 @@
 package com.ecomarket.ventas.service;
 
+import com.ecomarket.ventas.dto.CrearVentaDTO;
 import com.ecomarket.ventas.external.DetallePedido;
 import com.ecomarket.ventas.external.Pedido;
 import com.ecomarket.ventas.model.Venta;
@@ -24,41 +25,34 @@ public class VentaService {
         this.restTemplate = restTemplate;
     }
 
-    public Venta registrarVenta(Venta venta) {
-        // Verificar si ya existe una venta asociada al pedido
-        List<Venta> ventasExistentes = ventaRepo.findByPedidoId(venta.getPedidoId());
+    public Venta registrarVentaDesdeDTO(CrearVentaDTO dto) {
+        Long pedidoId = dto.getPedidoId();
+        String medioPago = dto.getMedioPago();
 
-        if (!ventasExistentes.isEmpty()) {
+        if (pedidoId == null || medioPago == null || medioPago.isBlank()) {
+            throw new RuntimeException("Faltan datos obligatorios para registrar la venta.");
+        }
+
+        // Verificar si ya existe una venta asociada al pedido
+        if (!ventaRepo.findByPedidoId(pedidoId).isEmpty()) {
             throw new RuntimeException("El pedido ya fue pagado. No se puede registrar otra venta.");
         }
 
         // Validar medio de pago
-        if (!venta.getMedioPago().matches("(?i)efectivo|tarjeta|transferencia")) {
+        if (!medioPago.matches("(?i)efectivo|tarjeta|transferencia")) {
             throw new RuntimeException("Medio de pago no válido");
         }
 
-        if (venta.getPedidoId() == null || venta.getMedioPago() == null) {
-            throw new RuntimeException("Faltan datos obligatorios para registrar la venta.");
-        }
-
-
-        venta.setFechaVenta(LocalDate.now());
-
         // Obtener información del pedido desde microservicio de Pedidos
-        String pedidoUrl = "http://localhost:8089/api/pedidos/" + venta.getPedidoId();
+        String pedidoUrl = "http://localhost:8089/api/pedidos/" + pedidoId;
         Pedido pedido = restTemplate.getForObject(pedidoUrl, Pedido.class);
-
         if (pedido == null) {
             throw new RuntimeException("No se pudo obtener el pedido desde el microservicio de Pedidos.");
         }
 
-        venta.setTotalVenta(pedido.getTotal());
-        venta.setClienteId(pedido.getClienteId());
-
         // Cambiar estado del pedido a 'Pagado'
-        String patchUrl = "http://localhost:8089/api/pedidos/" + venta.getPedidoId() + "/estado";
-        restTemplate.put(patchUrl,
-                java.util.Collections.singletonMap("estado", "Pagado"));
+        String patchUrl = "http://localhost:8089/api/pedidos/" + pedidoId + "/estado";
+        restTemplate.put(patchUrl, Map.of("estado", "Pagado"));
 
         // Descontar stock por cada producto
         for (DetallePedido detalle : pedido.getDetalles()) {
@@ -67,6 +61,12 @@ public class VentaService {
             restTemplate.put(urlDescontar, null);
         }
 
+        Venta venta = new Venta();
+        venta.setPedidoId(pedidoId);
+        venta.setClienteId(pedido.getClienteId());
+        venta.setMedioPago(medioPago);
+        venta.setFechaVenta(LocalDate.now());
+        venta.setTotalVenta(pedido.getTotal());
         venta.setEstado("Pagada");
 
         return ventaRepo.save(venta);
