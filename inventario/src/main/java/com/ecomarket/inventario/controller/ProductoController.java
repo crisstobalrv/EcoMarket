@@ -7,6 +7,7 @@ import com.ecomarket.inventario.dto.ProductoUpdateRequest;
 import com.ecomarket.inventario.model.Producto;
 import com.ecomarket.inventario.model.Proveedor;
 import com.ecomarket.inventario.service.ProductoService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -152,34 +153,21 @@ public class ProductoController {
                 ));
     }
 
-
+    @Hidden
     @GetMapping("/{id}/disponibilidad/{cantidad}")
-    @Operation(summary = "Verificar disponibilidad de stock")
-    @ApiResponse(responseCode = "200", description = "Disponibilidad evaluada")
-    @ApiResponse(responseCode = "404", description = "Producto no encontrado")
-    public ResponseEntity<EntityModel<DisponibilidadResponse>> verificarDisponibilidad(
+    public ResponseEntity<Boolean> verificarDisponibilidad(
             @PathVariable Long id,
             @PathVariable Integer cantidad) {
         try {
             Producto producto = productoService.obtenerProductoPorId(id);
             boolean disponible = producto.getStock() >= cantidad;
-
-            DisponibilidadResponse response = new DisponibilidadResponse(disponible);
-
-            EntityModel<DisponibilidadResponse> model = EntityModel.of(response,
-                    linkTo(methodOn(ProductoController.class).verificarDisponibilidad(id, cantidad)).withSelfRel(),
-                    linkTo(methodOn(ProductoController.class).obtenerProductoPorId(id)).withRel("Obtener producto"),
-                    linkTo(methodOn(ProductoController.class).listarProductos()).withRel("Listar todos los productos"),
-                    linkTo(methodOn(ProductoController.class).actualizar(id, new ProductoUpdateRequest())).withRel("Actualizar producto"),
-                    linkTo(methodOn(ProductoController.class).eliminarProducto(id)).withRel("Eliminar producto"),
-                    linkTo(methodOn(ProductoController.class).descontarStock(id, cantidad)).withRel("Descontar stock del producto"));
-
-            return ResponseEntity.ok(model);
+            return ResponseEntity.ok(disponible); // ← solo true o false
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
+    @Hidden
     @PutMapping("/{id}/descontar/{cantidad}")
     @Operation(summary = "Descontar stock de producto")
     @ApiResponse(responseCode = "200", description = "Stock descontado correctamente")

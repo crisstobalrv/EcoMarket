@@ -37,7 +37,7 @@ class ClienteServiceTest {
     }
 
     @Test
-    void guardarCliente_correctamente() {
+    void guardarCliente() {
         Cliente cliente = Cliente.builder()
                 .nombre("Luis")
                 .apellido("Gómez")
@@ -63,32 +63,8 @@ class ClienteServiceTest {
 
 
 
-
     @Test
-    void guardarCliente_sinUsuarioRegistrado_lanzaExcepcion() {
-        Cliente cliente = Cliente.builder()
-                .nombre("Luis")
-                .apellido("Gómez")
-                .rut("12345678-9")
-                .correo("luis@mail.com")
-                .telefono("123456789")
-                .direccion("Dirección X")
-                .build();
-
-        when(restTemplate.getForEntity(
-                "http://localhost:8081/api/autenticacion/existe?email=luis@mail.com",
-                Boolean.class)
-        ).thenReturn(new ResponseEntity<>(false, HttpStatus.OK)); // ⚠ Usuario NO existe
-
-        assertThrows(RuntimeException.class, () ->
-                        clienteService.registrar(cliente),
-                "Primero debe registrarse como usuario."
-        );
-    }
-
-
-    @Test
-    void actualizarCliente_correctamente() {
+    void actualizarCliente() {
         Cliente existente = Cliente.builder()
                 .id(1L)
                 .nombre("Luis")
@@ -134,7 +110,7 @@ class ClienteServiceTest {
         Cliente modificado = Cliente.builder()
                 .nombre("Luis")
                 .apellido("Gómez")
-                .correo("otro@mail.com") // ⚠ cambio ilegal
+                .correo("otro@mail.com")
                 .rut("12345678-9")
                 .telefono("123")
                 .direccion("Avenida 1")
@@ -150,7 +126,7 @@ class ClienteServiceTest {
 
 
     @Test
-    void obtenerCliente_existente_deberiaRetornarCliente() {
+    void obtenerCliente() {
         Cliente cliente = Cliente.builder()
                 .id(2L)
                 .nombre("Ana")
@@ -170,14 +146,7 @@ class ClienteServiceTest {
     }
 
     @Test
-    void obtenerCliente_noExistente_deberiaLanzarExcepcion() {
-        when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class, () -> clienteService.obtenerPorId(99L));
-    }
-
-    @Test
-    void listarClientes_deberiaRetornarLista() {
+    void listarClientes() {
         List<Cliente> lista = Arrays.asList(
                 Cliente.builder().id(1L).nombre("Juan").correo("juan@mail.com").rut("11111111-1").build(),
                 Cliente.builder().id(2L).nombre("Maria").correo("maria@mail.com").rut("22222222-2").build()

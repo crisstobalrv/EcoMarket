@@ -1,10 +1,12 @@
 package com.ecomarket.pedidos.service;
 
+import com.ecomarket.pedidos.dto.PedidoRequestDTO;
 import com.ecomarket.pedidos.external.Producto;
 import com.ecomarket.pedidos.model.DetallePedido;
 import com.ecomarket.pedidos.model.Pedido;
 import com.ecomarket.pedidos.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
@@ -28,55 +30,81 @@ public class PedidoService {
 
         String inventarioBaseUrl = "http://localhost:8083/api/productos";
 
+        if (pedido.getDetalles() == null || pedido.getDetalles().isEmpty()) {
+            throw new RuntimeException("El pedido no puede estar vacío.");
+        }
+
         double total = 0;
 
         for (DetallePedido detalle : pedido.getDetalles()) {
             Long productoId = detalle.getProductoId();
             Integer cantidad = detalle.getCantidad();
 
+            if (cantidad == null || cantidad <= 0) {
+                throw new RuntimeException("Cantidad inválida para el producto ID " + productoId);
+            }
+
             // Verificar disponibilidad
             String disponibilidadUrl = inventarioBaseUrl + "/" + productoId + "/disponibilidad/" + cantidad;
-            Boolean disponible = restTemplate.getForObject(disponibilidadUrl, Boolean.class);
+            Boolean disponible;
+
+            try {
+                disponible = restTemplate.getForObject(disponibilidadUrl, Boolean.class);
+            } catch (HttpClientErrorException.NotFound e) {
+                throw new RuntimeException("Producto " + productoId + " no existe en el inventario.");
+            } catch (Exception e) {
+                throw new RuntimeException("Error al consultar disponibilidad del producto " + productoId);
+            }
 
             if (Boolean.FALSE.equals(disponible)) {
                 throw new RuntimeException("Producto " + productoId + " no tiene stock suficiente.");
             }
 
-            // Obtener precio real del producto
+            // Obtener información del producto
             String productoUrl = inventarioBaseUrl + "/" + productoId;
-            Producto producto = restTemplate.getForObject(productoUrl, Producto.class);
-
-            if (producto == null) {
+            Producto producto;
+            try {
+                producto = restTemplate.getForObject(productoUrl, Producto.class);
+            } catch (HttpClientErrorException.NotFound e) {
                 throw new RuntimeException("Producto " + productoId + " no encontrado en inventario.");
+            } catch (Exception e) {
+                throw new RuntimeException("Error al consultar datos del producto " + productoId);
             }
 
-            // Asignar el precio real
-            detalle.setPrecioUnitario(producto.getPrecio());
+            if (producto == null) {
+                throw new RuntimeException("No se pudo recuperar información del producto " + productoId + ".");
+            }
 
-            // Acumular el total
+            // Asignar precio y calcular total
+            detalle.setPrecioUnitario(producto.getPrecio());
             total += producto.getPrecio() * cantidad;
 
-            // Asignar la referencia al pedido
+            // Asignar el pedido al detalle
             detalle.setPedido(pedido);
         }
 
-        // Validar pedido vacío
-        if (pedido.getDetalles() == null || pedido.getDetalles().isEmpty()) {
-            throw new RuntimeException("El pedido no puede estar vacío.");
-        }
-
-        // Validar cantidades positivas
-        for (DetallePedido d : pedido.getDetalles()) {
-            if (d.getCantidad() <= 0) {
-                throw new RuntimeException("Cantidad inválida para el producto ID " + d.getProductoId());
-            }
-        }
-
-
         pedido.setTotal(total);
-
         return pedidoRepo.save(pedido);
     }
+
+
+    public Pedido registrarDesdeDto(PedidoRequestDTO dto) {
+        Pedido pedido = new Pedido();
+        pedido.setClienteId(dto.getClienteId());
+
+        List<DetallePedido> detalles = dto.getDetalles().stream().map(d -> {
+            DetallePedido detalle = new DetallePedido();
+            detalle.setProductoId(d.getProductoId());
+            detalle.setCantidad(d.getCantidad());
+            detalle.setPedido(pedido);
+            return detalle;
+        }).toList();
+
+        pedido.setDetalles(detalles);
+
+        return registrar(pedido); // llamas al método original
+    }
+
 
 
     public List<Pedido> listarTodos() {

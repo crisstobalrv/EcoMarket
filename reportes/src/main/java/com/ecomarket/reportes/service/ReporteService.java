@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
@@ -50,6 +51,7 @@ public class ReporteService {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule()); // ✅ Registro de módulo para fechas
             String datosJson = mapper.writeValueAsString(reporteData);
             return guardarReporte("Ventas por fecha", datosJson);
         } catch (JsonProcessingException e) {
@@ -93,7 +95,12 @@ public class ReporteService {
             Integer cantidadVendida = entry.getValue();
 
             String urlProducto = "http://localhost:8083/api/productos/" + productoId;
-            Producto producto = restTemplate.getForObject(urlProducto, Producto.class);
+            Producto producto;
+            try {
+                producto = restTemplate.getForObject(urlProducto, Producto.class);
+            } catch (HttpClientErrorException.NotFound e) {
+                producto = null;
+            }
 
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("productoId", productoId);
@@ -102,6 +109,7 @@ public class ReporteService {
 
             reporteFinal.add(item);
         }
+
 
         // Ordenar por cantidad vendida descendente
         reporteFinal.sort((a, b) -> ((Integer)b.get("cantidadVendida")).compareTo((Integer)a.get("cantidadVendida")));

@@ -56,9 +56,10 @@ class EnvioControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(envio)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.mensaje").value("Envío creado exitosamente."))
-                .andExpect(jsonPath("$.envio.id").value(envio.getId()))
-                .andExpect(jsonPath("$.envio.estado").value("En preparación"));
+                .andExpect(jsonPath("$.id").value(envio.getId()))
+                .andExpect(jsonPath("$.estado").value("En preparación"))
+                .andExpect(jsonPath("$._links.self.href").exists());
+
     }
 
     @Test
@@ -67,8 +68,9 @@ class EnvioControllerTest {
 
         mockMvc.perform(get("/api/envios"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(envio.getId()))
-                .andExpect(jsonPath("$[0].estado").value("En preparación"));
+                .andExpect(jsonPath("$._embedded.envioList[0].id").value(envio.getId()))
+                .andExpect(jsonPath("$._embedded.envioList[0].estado").value("En preparación"));
+
     }
 
     @Test
@@ -95,7 +97,8 @@ class EnvioControllerTest {
 
         mockMvc.perform(get("/api/envios/venta/10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].ventaId").value(10));
+                .andExpect(jsonPath("$._embedded.envioList[0].ventaId").value(10));
+
     }
 
     @Test
